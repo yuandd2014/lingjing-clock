@@ -1,6 +1,6 @@
 {
   "name": "lingjing-clock",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "灵境时钟 (LingJing Clock) - Windows 桌面待屏时钟，搭载灵境UI 与灵镜光感",
   "main": "main.js",
   "scripts": {

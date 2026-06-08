@@ -42,6 +42,9 @@ CubismWebSamples-develop/
 live2d-models/         # 第三方 live2d-widget-models 克隆
 *.zip
 
+# 官网源码 (独立仓库 lingjing-clock-website, 不入主项目)
+website-site/
+
 # 研究笔记 (内部)
 gps-research/
 

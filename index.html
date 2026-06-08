@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Desktop Clock</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="wallpaper"></div>
+  <div class="vignette"></div>
+  <div class="particles" id="particles"></div>
+
+  <!-- Live2D 虚拟形象层 -->
+  <div class="live2d-layer" id="live2d-layer">
+    <canvas id="live2d-canvas"></canvas>
+    <div class="live2d-shadow"></div>
+  </div>
+
+  <!-- 主内容层 -->
+  <div class="container">
+    <!-- 左侧：超大时钟 -->
+    <div class="area-clock">
+      <div class="clock-wrapper">
+        <div class="clock" id="clock">00:00</div>
+        <div class="clock-date" id="clock-date">1月1日</div>
+        <div class="clock-seconds" id="clock-seconds">00</div>
+      </div>
+    </div>
+
+    <!-- 右上：天气 -->
+    <div class="area-weather glass-card">
+      <div class="weather-main">
+        <div class="weather-icon-wrapper">
+          <div class="weather-icon" id="weather-icon">☀️</div>
+        </div>
+        <div class="weather-temp" id="weather-temp">26°</div>
+        <div class="weather-info">
+          <div class="weather-condition" id="weather-condition">多云</div>
+          <div class="weather-range" id="weather-range">28° / 18°</div>
+          <div class="weather-city" id="weather-city">📍 重庆</div>
+          <div class="weather-feels" id="weather-feels"></div>
+          <div class="weather-aqi-row">
+            <span class="weather-aqi" id="weather-aqi"></span>
+            <span class="weather-aqi-primary" id="weather-aqi-primary"></span>
+          </div>
+        </div>
+      </div>
+      <div class="weather-indices" id="weather-indices"></div>
+      <div class="weather-daily" id="weather-daily"></div>
+      <div class="weather-forecast" id="weather-forecast"></div>
+    </div>
+
+    <!-- 左下：日历 -->
+    <div class="area-calendar glass-card">
+      <div class="calendar-header">
+        <div class="calendar-date" id="calendar-date">2024年5月20日</div>
+        <div class="calendar-weekday" id="calendar-weekday">星期一</div>
+        <div class="calendar-lunar" id="calendar-lunar">甲辰年 四月十三</div>
+      </div>
+      <div class="calendar-grid" id="calendar-grid"></div>
+    </div>
+
+    <!-- 右下：节气 -->
+    <div class="area-solar glass-card">
+      <div class="solar-term-label">节气</div>
+      <div class="solar-term-name" id="solar-term-name">小满</div>
+      <div class="solar-term-lunar" id="solar-term-lunar">农历四月十三</div>
+      <div class="solar-term-desc" id="solar-term-desc">小满者，物至于此小得盈满。</div>
+      <div class="solar-term-icon">🌾</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="control-btn" id="btn-fullscreen" title="全屏">⛶</button>
+    <button class="control-btn" id="btn-refresh" title="刷新">↻</button>
+  </div>
+
+  <script src="js/live2d/core/live2dcubismcore.min.js"></script>
+  <script src="node_modules/pixi.js/dist/browser/pixi.min.js"></script>
+  <script src="node_modules/pixi-live2d-display/dist/cubism4.min.js"></script>
+  <script src="js/quotes.js"></script>
+  <script src="js/lunar.js"></script>
+  <script src="js/clock.js"></script>
+  <script src="js/weather.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/live2d-loader.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="700" viewBox="0 0 500 700">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f5f5f5;stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:#e0e0e0;stop-opacity:0.05" />
+    </linearGradient>
+  </defs>
+  <rect width="500" height="700" fill="url(#bg)" />
+  
+  <!-- 身体轮廓 -->
+  <ellipse cx="250" cy="450" rx="100" ry="150" fill="#ffffff" opacity="0.8" />
+  
+  <!-- 头发 -->
+  <ellipse cx="250" cy="200" rx="80" ry="100" fill="#e8e0d0" />
+  
+  <!-- 脸 -->
+  <ellipse cx="250" cy="250" rx="50" ry="60" fill="#ffe0d0" />
+  
+  <!-- 眼睛 -->
+  <ellipse cx="220" cy="240" rx="8" ry="12" fill="#333" />
+  <ellipse cx="280" cy="240" rx="8" ry="12" fill="#333" />
+  
+  <!-- 嘴巴 -->
+  <path d="M235 280 Q250 290 265 280" stroke="#c08070" stroke-width="2" fill="none" />
+  
+  <!-- 身体 -->
+  <rect x="180" y="300" width="140" height="200" rx="10" fill="#ffffff" opacity="0.9" />
+  
+  <!-- 裙子 -->
+  <path d="M170 500 Q250 550 330 500 L320 600 Q250 620 180 600 Z" fill="#607090" />
+  
+  <!-- 领结 -->
+  <polygon points="240,350 260,350 250,380" fill="#303040" />
+  
+  <!-- 文字提示 -->
+  <text x="250" y="650" font-family="sans-serif" font-size="16" fill="#ffffff" text-anchor="middle" opacity="0.7">
+    替换为你的角色图片
+  </text>
+</svg>

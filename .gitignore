@@ -1,0 +1,63 @@
+# Node / Electron
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 构建产物 (NSIS 安装包 + portable + 中间产物)
+dist/
+dist_*/
+build/
+out/
+*.exe
+*.dmg
+*.AppImage
+*.deb
+*.rpm
+*.blockmap
+
+# 编辑器 / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 系统
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# 内部文档 (私人)
+.trae/
+
+# Live2D 第三方 SDK / Samples / 第三方模型克隆
+CubismWebFramework/
+CubismWebFramework-develop/
+CubismWebFramework2/
+CubismWebSamples/
+CubismWebSamples-develop/
+live2d-models/         # 第三方 live2d-widget-models 克隆
+*.zip
+
+# 研究笔记 (内部)
+gps-research/
+
+# Android 项目 (另一平台, 暂不发布)
+android/
+capacitor.config.ts
+capacitor.config.json
+
+# 临时 / 缓存
+*.tmp
+*.bak
+*.log
+.cache/
+.parcel-cache/
+
+# 环境 / 凭据 (即使已混淆, 也建议保留一份干净的 .env.example)
+.env
+.env.local
+.env.*.local

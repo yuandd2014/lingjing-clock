@@ -12,6 +12,7 @@
   "build": {
     "appId": "com.lingjing.clock",
     "productName": "LingJing Clock",
+    "publish": false,
     "directories": {
       "output": "dist_v8"
     },

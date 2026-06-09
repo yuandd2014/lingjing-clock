@@ -34,6 +34,14 @@
 - 设置持久化: `localStorage['lingjing-settings-v1']`
 - `.gitignore` 加 `website-site/` (官网源码独立仓库, 不入主项目)
 
+### 修复 (源码层, 待下次打包生效)
+
+- **每日一言模块加载失败** — `js/quotes.js` 文件末尾截断, 整个 module 抛 `SyntaxError: Unexpected end of input`, `QUOTES` 永远 undefined, 每日一言**实际只在显示 fallback** "学而不思则罔, 思而不学则殆。" (v1.0.0 release 起就一直如此)
+- **名言数据大量重复** — 同一份《易经》卦爻辞 64 句被重复粘贴了 11 次左右, 1265 条总数里只有 477 条 unique. 30 天不重复算法从未真正生效, 每天实际显示同一条
+- 修复: 补 `quotes.js` 末尾缺失的 `: "《易经》" },\n];` 4 项闭合 + 用 `Map` 去重保留 477 unique. 30 天不重复算法现已正常工作, 每日一言功能恢复
+
+> 注: v1.0.1 installer 仍包含修复前的代码, **下载 v1.0.1 的用户需要等下次打包 (或临时手动覆盖 `js/quotes.js`)** 才能用上每日一言.
+
 ### 下载
 
 - 安装版: `LingJing.Clock.Setup.1.0.1.exe`

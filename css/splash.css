@@ -1,0 +1,187 @@
+/* 灵境 Splash 仪式 — 480x360 居中圆角 28px 毛玻璃
+   复用 firstrun.js 的光毯 keyframe
+   GPU 合成层: 0 layout thrashing
+   可访问性: prefers-reduced-motion 兜底
+*/
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'Segoe UI', 'Microsoft YaHei UI', -apple-system, sans-serif;
+  color: #fff;
+  background: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-app-region: drag;
+}
+
+/* 480x360 居中舞台 */
+.splash-stage {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 480px;
+  height: 360px;
+  border-radius: 28px;
+  background:
+    linear-gradient(135deg, rgba(120, 180, 255, 0.42) 0%, rgba(160, 130, 240, 0.42) 100%),
+    rgba(20, 20, 40, 0.55);
+  backdrop-filter: blur(40px) saturate(1.8);
+  -webkit-backdrop-filter: blur(40px) saturate(1.8);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 48px;
+  animation: stageIn 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@keyframes stageIn {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.94); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* 光毯 (跟 firstrun 一致) */
+.light-sweep {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+.light-sweep::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -50%;
+  width: 60%;
+  height: 140%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 38%,
+    rgba(200, 220, 255, 0.18) 47%,
+    rgba(230, 240, 255, 0.45) 50%,
+    rgba(200, 220, 255, 0.18) 53%,
+    transparent 62%,
+    transparent 100%
+  );
+  transform: translateX(0);
+  filter: blur(18px);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: lightSweep 1.4s cubic-bezier(0.22, 0.61, 0.36, 1) 0.15s forwards;
+}
+@keyframes lightSweep {
+  0%   { opacity: 0; transform: translateX(0); }
+  12%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(200%); }
+}
+
+/* 灵字 Logo (圆形渐变) */
+.splash-mark {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: 700;
+  background-clip: padding-box;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(135deg, #ffffff 0%, #d8e0ff 100%);
+  box-shadow: 0 8px 24px rgba(120, 130, 240, 0.3);
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 2;
+  animation: markFloat 3s ease-in-out infinite;
+  -webkit-text-fill-color: transparent;
+}
+@keyframes markFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+
+/* 标题 */
+.splash-title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  background: linear-gradient(135deg, #ffffff 0%, #d8e0ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 4px;
+  position: relative;
+  z-index: 2;
+}
+.splash-version {
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.55);
+  font-family: 'Consolas', 'Courier New', monospace;
+  margin-bottom: 32px;
+  position: relative;
+  z-index: 2;
+}
+
+/* 进度条 */
+.splash-progress {
+  width: 280px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  position: relative;
+  z-index: 2;
+  margin-bottom: 16px;
+}
+.splash-progress-bar {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #78b4ff 0%, #a082f0 100%);
+  border-radius: 2px;
+  box-shadow: 0 0 12px rgba(160, 130, 240, 0.6);
+  transition: width 0.3s ease-out;
+  will-change: width;
+}
+
+/* 提示文字 */
+.splash-hint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
+  letter-spacing: 0.3px;
+  position: relative;
+  z-index: 2;
+  min-height: 16px;
+  animation: hintFade 0.4s ease-out;
+}
+@keyframes hintFade {
+  0%   { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* 减弱动效 */
+@media (prefers-reduced-motion: reduce) {
+  .splash-stage { animation: none; }
+  .light-sweep::before { animation: none; opacity: 1; }
+  .splash-mark { animation: none; }
+  .splash-hint { animation: none; }
+}

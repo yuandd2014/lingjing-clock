@@ -7,6 +7,62 @@
 
 ---
 
+## v1.2.0 (2026-06-09)
+
+**灵境 安装仪式 + 自动更新 — 让升级也变得轻巧。**
+
+### 新增
+
+- **🎁 灵境 安装仪式 (Splash)** — 复制文件完成后, 灵境时钟自身弹一个 480×360 居中圆角毛玻璃 splash 仪式页: 1.4s 冷白月光光毯 + 灵字 Logo 浮呼吸 + 紫青极光进度条 + 4.5s 后自动退场
+  - 装好立刻可见, 不再是干巴巴的"安装完成"
+  - 复用 `firstrun.js` 的 `lightSweep` keyframe, 保持视觉一致
+  - 减弱动效兜底 (`prefers-reduced-motion`)
+- **🖼️ NSIS 安装器品牌化** — 头图 164×55 + 侧栏 164×314 + 安装器图标 256×256 + 头图图标 32×32 全部烧灵境品牌色 (紫青极光渐变 + 灵字 Logo)
+  - 头图技术细节: BMP 32-bit BI_RGB 未压缩, 侧栏 164×314, NSIS MUI2 100% 接受
+  - 安装器图标 256×256, 资源管理器 / 任务栏 / 卸载器统一使用
+- **⚙️ 安装选项页 (nsDialogs 自绘)** — 路径选择后, 安装前弹一个"安装选项"页, 3 个勾选:
+  - ☑ **启用自动检查更新 (推荐)** — 默认勾上, 旁注"需要联网获取新版本, 您随时可在 设置 中关闭"
+  - ☑ 创建桌面快捷方式 (默认勾上)
+  - ☑ 创建开始菜单快捷方式 (默认勾上)
+  - 写注册表 `HKCU\Software\LingJing Clock\AutoUpdate` (DWORD) — 装好后 app 读这个值
+- **🔔 自动检查更新 (electron-updater)** — 启动 6s 后, 静默 `checkForUpdates()`; 有更新后台下载; 装好弹非阻塞 toast (右上角毛玻璃卡片)
+  - 默认开启, 用户随时可在 设置 → 系统更新 关闭
+  - **显式告知网络需求**: 安装选项页旁注 + 设置页 "立即检查更新" 按钮
+  - 通知文案: "发现新版本 vX.Y.Z — 正在后台下载, 装好会通知您" / "灵境时钟 vX.Y.Z 已下载 — 重启后生效"
+  - **不强制重启** — `autoInstallOnAppQuit: false`, 用户点"立即重启"才生效
+- **📜 精简用户协议 (LICENSE.txt)** — ~200 字, 4 条 (自由使用 / 不保证质量 / 数据归属 / 反馈与贡献), 不堆诱导分享、争议仲裁、冗长免责条款
+- **🪟 自定义 Welcome / Finish / Unwelcome 页** — 灵境色头图 + 标题, 装完引导"立即体验灵境时钟" (默认勾上)
+
+### 内部
+
+- 新增 `LICENSE.txt` (UTF-8 BOM, 950 bytes, 4 段 ~200 字)
+- 新增 `build/installer.nsh` (NSIS 钩子):
+  - `customWelcomePage` / `licensePage` / `customFinishPage` / `customUnWelcomePage`
+  - `customPageAfterChangeDir` — nsDialogs 自绘"安装选项"页 (3 checkbox + 2 label + 1 groupbox)
+  - `customInstall` — `WriteRegDWORD` 写 3 个用户选项 + `ExecWait '"$INSTDIR\${APP_EXECUTABLE_FILENAME}" --splash-mode'`
+- 新增 `build/installerHeader.bmp` (164×55, 32-bit) / `build/installerSidebar.bmp` (164×314, 32-bit) / `build/installerIcon.ico` (256×256) / `build/installerHeaderIcon.ico` (32×32)
+- 新增 `splash.html` / `css/splash.css` / `js/splash.js` — 独立 splash UI, 480×360 圆角 28px
+- `main.js` 改:
+  - 检测 `--splash-mode` argv, 启动 splash 窗口 (480×360 居中, transparent + frame:false)
+  - 集成 `electron-updater`, 启动 6s 后静默 `checkForUpdates()`
+  - 读 `HKCU\Software\LingJing Clock\AutoUpdate` 注册表 + `lingjing-settings-v1.json` 决定是否启用
+  - IPC: `splash-dismiss` / `auto-update-check` / `auto-update-install` / `auto-update-get-enabled`
+- `preload.js` 暴露 `lingjingSplash.dismiss` + `electronAPI.{autoUpdateCheck, autoUpdateInstall, getAutoUpdateEnabled, onUpdateEvent}`
+- `js/settings.js` 加 `autoUpdateEnabled: true` 默认
+- `js/settings-ui.js` 加"系统更新"section (开关 + "立即检查更新"按钮) + `showUpdateToast` (右上角非阻塞毛玻璃卡片)
+- `css/style.css` 新增 ~103 行 (.update-toast + .settings-action-btn)
+- `package.json` 改: `version 1.1.0 → 1.2.0`, `output dist_v9 → dist_v10`, `publish github`, `nsis.license/header/sidebar/icon`, `oneClick: false` (assisted), 加 `electron-updater` 依赖
+- `dist_v10/` 产物:
+  - `LingJing.Clock.Setup.1.2.0.exe` (NSIS 安装器, 灵境品牌色, 协议页, 安装选项页, splash 仪式)
+  - `LingJingClock-Portable.exe` (便携版)
+
+### 下载
+
+- [LingJing.Clock.Setup.1.2.0.exe](https://github.com/yuandd2014/lingjing-clock/releases/download/v1.2.0/LingJing.Clock.Setup.1.2.0.exe)
+- [LingJingClock-Portable.exe](https://github.com/yuandd2014/lingjing-clock/releases/download/v1.2.0/LingJingClock-Portable.exe)
+
+---
+
 ## v1.1.0 (2026-06-09)
 
 **灵境 Onboarding — 让首次启动也有仪式感。**

@@ -60,6 +60,13 @@
           ] },
       ],
     },
+    {
+      key: '_system', title: '系统更新', icon: '🔄',
+      items: [
+        { type: 'switch', key: 'autoUpdateEnabled', label: '自动检查更新' },
+        { type: 'action', key: 'checkNow', label: '立即检查更新' },
+      ],
+    },
   ];
 
   function fmtVal(v, item) {
@@ -73,23 +80,26 @@
     const row = document.createElement('div');
     row.className = 'settings-row';
     const fullKey = secKey + '.' + item.key;
+    // _system 是顶层 key, 不要加 secKey 前缀
+    const isTopLevel = secKey === '_system';
+    const dataKey = isTopLevel ? item.key : fullKey;
 
     if (item.type === 'switch') {
       row.innerHTML =
         '<span class="settings-row-label">' + item.label + '</span>' +
         '<label class="settings-switch">' +
-          '<input type="checkbox" data-key="' + fullKey + '"' + (val ? ' checked' : '') + '>' +
+          '<input type="checkbox" data-key="' + dataKey + '"' + (val ? ' checked' : '') + '>' +
           '<span class="settings-switch-slider"></span>' +
         '</label>';
     } else if (item.type === 'range') {
       row.innerHTML =
         '<span class="settings-row-label">' + item.label + '</span>' +
         '<div class="settings-range-wrap">' +
-          '<input type="range" class="settings-range" data-key="' + fullKey + '"' +
+          '<input type="range" class="settings-range" data-key="' + dataKey + '"' +
             (item.integer ? ' data-integer="1"' : '') +
             ' min="' + item.min + '" max="' + item.max + '" step="' + item.step + '"' +
             ' value="' + val + '">' +
-          '<span class="settings-range-val" data-val-for="' + fullKey + '">' +
+          '<span class="settings-range-val" data-val-for="' + dataKey + '">' +
             fmtVal(val, item) + '</span>' +
         '</div>';
     } else if (item.type === 'select') {
@@ -98,7 +108,11 @@
       ).join('');
       row.innerHTML =
         '<span class="settings-row-label">' + item.label + '</span>' +
-        '<select class="settings-select" data-key="' + fullKey + '">' + opts + '</select>';
+        '<select class="settings-select" data-key="' + dataKey + '">' + opts + '</select>';
+    } else if (item.type === 'action') {
+      row.innerHTML =
+        '<span class="settings-row-label">' + item.label + '</span>' +
+        '<button type="button" class="settings-action-btn" data-key="' + dataKey + '">检查</button>';
     }
     return row;
   }
@@ -151,7 +165,6 @@
     }
     window.Settings.set(key, val);
   }
-
   function open() {
     render();
     const ov = document.getElementById('settings-overlay');
@@ -198,6 +211,28 @@
       }, 240);
     });
 
+    // "立即检查更新" 按钮
+    body.addEventListener('click', (e) => {
+      const t = e.target;
+      if (t && t.classList && t.classList.contains('settings-action-btn') && t.dataset.key === 'checkNow') {
+        if (window.electronAPI && window.electronAPI.autoUpdateCheck) {
+          window.electronAPI.autoUpdateCheck();
+          t.disabled = true;
+          t.textContent = '检查中…';
+          setTimeout(() => {
+            try { t.disabled = false; t.textContent = '检查'; } catch (e) {}
+          }, 4000);
+        }
+      }
+    });
+
+    // 自动更新事件 → 弹一个非阻塞卡片
+    if (window.electronAPI && window.electronAPI.onUpdateEvent) {
+      window.electronAPI.onUpdateEvent((data) => {
+        showUpdateToast(data);
+      });
+    }
+
     // ESC 关闭 (但优先让 app.js 的退出 app 逻辑)
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && !document.getElementById('settings-overlay').hidden) {
@@ -210,6 +245,53 @@
 
   function boot() {
     bind();
+  }
+
+  // 自动更新 toast (非阻塞卡片, 6s 自动消失)
+  function showUpdateToast(data) {
+    const existing = document.getElementById('update-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'update-toast';
+    toast.className = 'update-toast';
+    const phase = data && data.phase;
+    const ver = data && data.version;
+    if (phase === 'install') {
+      toast.innerHTML =
+        '<div class="update-toast-icon">✨</div>' +
+        '<div class="update-toast-body">' +
+          '<div class="update-toast-title">灵境时钟 v' + (ver || '新版本') + ' 已下载</div>' +
+          '<div class="update-toast-sub">重启后生效, 也可以稍后在 设置 中手动更新</div>' +
+        '</div>' +
+        '<button class="update-toast-action" id="update-toast-install">立即重启</button>' +
+        '<button class="update-toast-close" id="update-toast-close">×</button>';
+    } else {
+      toast.innerHTML =
+        '<div class="update-toast-icon">⏬</div>' +
+        '<div class="update-toast-body">' +
+          '<div class="update-toast-title">发现新版本 v' + (ver || '') + '</div>' +
+          '<div class="update-toast-sub">正在后台下载, 装好会通知您</div>' +
+        '</div>' +
+        '<button class="update-toast-close" id="update-toast-close">×</button>';
+    }
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+
+    const close = () => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    };
+    document.getElementById('update-toast-close').addEventListener('click', close);
+    const installBtn = document.getElementById('update-toast-install');
+    if (installBtn) {
+      installBtn.addEventListener('click', () => {
+        if (window.electronAPI && window.electronAPI.autoUpdateInstall) {
+          window.electronAPI.autoUpdateInstall();
+        }
+      });
+    }
+    setTimeout(close, phase === 'install' ? 12000 : 6000);
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);

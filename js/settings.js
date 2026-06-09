@@ -17,6 +17,8 @@
     live2d:    { visible: true, opacity: 1.00, model: 'Hiyori' },
     particles: { visible: true, count: 10 },
     clock:     { size: 140, opacity: 1.00, align: 'left' },
+    // v1.2.0: 自动更新 (默认开启, NSIS 装时勾选值优先, 装好后用户可关)
+    autoUpdateEnabled: true,
   };
 
   let current = deepClone(DEFAULTS);

@@ -1150,3 +1150,360 @@ html, body {
   font-weight: 600;
   white-space: nowrap;
 }
+
+/* ========== 首次启动毛玻璃欢迎页 (Onboarding) ========== */
+.firstrun-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 250; /* 高于设置面板 (200) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.28s ease;
+  overflow: hidden;
+}
+.firstrun-overlay.show { opacity: 1; }
+.firstrun-overlay[hidden] { display: none; }
+
+/* 🌅 光毯 (冷白月光, 1.4s 横扫) */
+.light-sweep {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+.light-sweep::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -50%;
+  width: 60%;
+  height: 140%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 38%,
+    rgba(200, 220, 255, 0.18) 47%,
+    rgba(230, 240, 255, 0.42) 50%,
+    rgba(200, 220, 255, 0.18) 53%,
+    transparent 62%,
+    transparent 100%
+  );
+  transform: translateX(0);
+  filter: blur(18px);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.firstrun-overlay.show .light-sweep::before {
+  animation: lightSweep 1.4s cubic-bezier(0.22, 0.61, 0.36, 1) 0.1s forwards;
+}
+@keyframes lightSweep {
+  0%   { opacity: 0; transform: translateX(0); }
+  12%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(200%); }
+}
+
+/* 中心舞台 */
+.firstrun-stage {
+  position: relative;
+  z-index: 2;
+  width: 720px;
+  max-width: 92vw;
+  max-height: 86vh;
+  overflow-y: auto;
+  padding: 56px 64px 48px;
+  background: rgba(28, 28, 30, 0.86);
+  backdrop-filter: blur(40px) saturate(1.8);
+  -webkit-backdrop-filter: blur(40px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 28px;
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.6),
+    0 8px 24px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #fff;
+  text-align: center;
+  transform: translateY(20px) scale(0.96);
+  opacity: 0;
+  transition: transform 0.34s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.28s ease;
+}
+.firstrun-overlay.show .firstrun-stage {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+.firstrun-overlay.hide .firstrun-stage {
+  transform: translateY(-12px) scale(0.98);
+  opacity: 0;
+  transition-duration: 0.22s;
+}
+
+/* 灵字标 (Logo 替代) */
+.firstrun-mark {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 18px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, rgba(120, 200, 255, 0.18), rgba(180, 140, 255, 0.22));
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 18px;
+  box-shadow:
+    0 8px 24px rgba(120, 200, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  animation: markFloat 4s ease-in-out infinite;
+}
+.firstrun-mark-glyph {
+  font-size: 30px;
+  font-weight: 700;
+  font-family: 'Noto Serif SC', 'Noto Sans SC', serif;
+  background: linear-gradient(135deg, #cce8ff 0%, #d8c8ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  letter-spacing: -0.02em;
+}
+@keyframes markFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+
+/* 标题 + 副标题 */
+.firstrun-title {
+  font-family: 'Orbitron', 'Noto Sans SC', sans-serif;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0 0 6px;
+  background: linear-gradient(135deg, #cce8ff 0%, #d8c8ff 50%, #ffc8e8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.firstrun-subtitle {
+  font-size: 17px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
+  margin: 0 0 4px;
+}
+.firstrun-tagline {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0 0 32px;
+}
+
+/* 引导卡 3 张 */
+.firstrun-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 32px;
+}
+.firstrun-card {
+  padding: 20px 16px 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1),
+              opacity 0.32s ease,
+              background 0.22s ease,
+              border-color 0.22s ease,
+              box-shadow 0.22s ease;
+  /* 入场延迟由 inline --card-delay 决定 */
+  transition-delay: var(--card-delay, 0ms);
+}
+.firstrun-overlay.show .firstrun-card {
+  opacity: 1;
+  transform: translateY(0);
+}
+.firstrun-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(180, 200, 255, 0.32);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(120, 160, 255, 0.18);
+  transition-delay: 0ms;
+}
+.firstrun-card-icon {
+  font-size: 30px;
+  line-height: 1;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 2px 6px rgba(180, 200, 255, 0.3));
+}
+.firstrun-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 6px;
+  color: rgba(255, 255, 255, 0.95);
+}
+.firstrun-card-desc {
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.62);
+  margin: 0;
+}
+.firstrun-card-desc kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  margin: 0 1px;
+  font-family: 'SF Mono', 'Consolas', monospace;
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+/* 按钮组 */
+.firstrun-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 4px;
+}
+.firstrun-btn {
+  position: relative;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  padding: 11px 26px;
+  border-radius: 999px;
+  transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+  overflow: hidden;
+}
+.firstrun-btn:focus-visible {
+  outline: 2px solid rgba(180, 200, 255, 0.7);
+  outline-offset: 3px;
+}
+.firstrun-btn-ghost {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+}
+.firstrun-btn-ghost:hover {
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.06);
+}
+.firstrun-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(120, 180, 255, 0.85), rgba(160, 130, 240, 0.85));
+  box-shadow:
+    0 6px 20px rgba(120, 160, 240, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  animation: btnBreath 1.8s ease-in-out infinite;
+}
+.firstrun-btn-primary:hover {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow:
+    0 10px 28px rgba(120, 160, 240, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  animation: none;
+}
+.firstrun-btn-primary:active {
+  transform: translateY(0) scale(0.98);
+}
+.firstrun-btn-arrow {
+  font-size: 16px;
+  transition: transform 0.22s ease;
+}
+.firstrun-btn-primary:hover .firstrun-btn-arrow {
+  transform: translateX(3px);
+}
+@keyframes btnBreath {
+  0%, 100% { box-shadow: 0 6px 20px rgba(120, 160, 240, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.22); }
+  50%      { box-shadow: 0 8px 26px rgba(120, 160, 240, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.28); }
+}
+
+/* 点击 ripple (CSS 伪元素, 不依赖 JS) */
+.firstrun-btn-ripple {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+}
+.firstrun-btn-ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+}
+.firstrun-btn-primary:active .firstrun-btn-ripple::after {
+  animation: btnRipple 0.5s ease-out;
+}
+@keyframes btnRipple {
+  0%   { width: 0;   height: 0;   opacity: 0.55; }
+  100% { width: 240px; height: 240px; opacity: 0; }
+}
+
+/* 减少动效 (无障碍) */
+@media (prefers-reduced-motion: reduce) {
+  .light-sweep { display: none; }
+  .firstrun-stage,
+  .firstrun-card,
+  .firstrun-mark,
+  .firstrun-btn-primary {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  .firstrun-card { transition-delay: 0ms !important; }
+}
+
+/* 窄屏 (平板/小窗): 卡片变 1 列 */
+@media (max-width: 640px) {
+  .firstrun-stage { padding: 40px 24px 32px; }
+  .firstrun-cards { grid-template-columns: 1fr; }
+  .firstrun-title { font-size: 28px; }
+}
+
+/* 设置面板底部扩展 (重新显示欢迎页链接) */
+.settings-footer-extras {
+  display: flex;
+  justify-content: center;
+  padding: 0 0 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 4px;
+}
+.settings-link {
+  background: transparent;
+  border: 0;
+  padding: 10px 16px;
+  font: inherit;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: color 0.18s ease, background 0.18s ease;
+}
+.settings-link:hover {
+  color: rgba(180, 200, 255, 0.95);
+  background: rgba(180, 200, 255, 0.06);
+}
+.settings-link:focus-visible {
+  outline: 2px solid rgba(180, 200, 255, 0.7);
+  outline-offset: 2px;
+}

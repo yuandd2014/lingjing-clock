@@ -7,6 +7,38 @@
 
 ---
 
+## v1.1.0 (2026-06-09)
+
+**灵境 Onboarding — 让首次启动也有仪式感。**
+
+### 新增
+
+- **🌅 首次启动毛玻璃欢迎页** — 应用启动时 (仅一次) 弹出全屏毛玻璃引导页, 1.4s 冷白月光光毯横扫, 3 张引导卡 (右下角热区 / 设置面板 / 快捷键) 错峰淡入, 主按钮呼吸动效
+  - 设计语言: 与 `settings-overlay` 一致的毛玻璃 + 紫青极光渐变, 不是新起炉灶
+  - 入场 1.6s 内完成, GPU 合成层, 0 layout thrashing
+  - 键盘: `Esc` 关闭 (等同 "稍后再说") / `Enter` 触发 "开始使用"
+  - 可访问性: `role="dialog" aria-modal="true" aria-labelledby`, 焦点自动跳到主按钮, 关闭时还原
+  - 动效减少: `prefers-reduced-motion: reduce` → 光毯 0 动效直接显示
+  - 异常兜底: localStorage 写失败不阻断应用
+- **✨ "重新显示欢迎页" 入口** — 设置面板底部加链接, 一键重看 Onboarding (清 flag + 强制展示)
+- **💫 主按钮点击 ripple** — CSS 伪元素, 不依赖 JS, 0 阻塞
+- **🎴 卡片 hover 反馈** — 上移 4px + 极光色 glow
+- **🫁 主按钮呼吸动效** — 1.8s 周期, CTA 突出
+
+### 内部
+
+- `js/firstrun.js` 新增 (IIFE, 190 行, 含动效 / 键盘 / 可访问性 / 兜底全套)
+- `css/style.css` 新增 `firstrun-overlay / light-sweep / firstrun-stage / firstrun-card / firstrun-btn` 段落 (约 200 行)
+- `index.html` 引入 `js/firstrun.js`, 设置面板加 `#settings-show-welcome` 链接
+- `js/settings-ui.js` 加 "重新显示欢迎页" 事件 (延迟 240ms 关设置再开, 体验更顺)
+
+### 下载
+
+- 安装版: `LingJing.Clock.Setup.1.1.0.exe`
+- 便携版: `LingJingClock-Portable.exe`
+
+---
+
 ## v1.0.1 (2026-06-08)
 
 **这次让桌面时钟终于"听你的话"。**

@@ -186,6 +186,18 @@
       }
     });
 
+    // 重新显示欢迎页 — 关闭设置面板, 触发 firstrun 强制展示
+    document.getElementById('settings-show-welcome').addEventListener('click', () => {
+      close();
+      // 稍等关闭动画再开, 体验更顺
+      setTimeout(() => {
+        if (window.FirstRun) {
+          window.FirstRun.reset();  // 清 flag (虽然 force=true 不需要, 写一致)
+          window.FirstRun.show(true);
+        }
+      }, 240);
+    });
+
     // ESC 关闭 (但优先让 app.js 的退出 app 逻辑)
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && !document.getElementById('settings-overlay').hidden) {

@@ -130,7 +130,10 @@
       head.innerHTML = '<span class="settings-section-icon">' + sec.icon + '</span>' +
                        '<span>' + sec.title + '</span>';
       secEl.appendChild(head);
-      const group = s[sec.key] || {};
+      // v1.2.1 修: _system section 字段在 current 顶层, 不在 s._system 子对象
+      // 之前 s._system 是 undefined → group[item.key] 是 undefined → 开关永远不显示 checked
+      // 现在: 顶层 section 时 group 直接用 current 整体, 子 section 时取 s[sec.key]
+      const group = sec.key === '_system' ? s : (s[sec.key] || {});
       for (const item of sec.items) {
         secEl.appendChild(buildRow(item, sec.key, group[item.key]));
       }
@@ -139,16 +142,21 @@
   }
 
   // 单次事件代理, 监听所有 change/input
+  // 1.5 轮 v1.2.1+: input 事件只更新显示 (span 文字), change 事件 (mouseup) 才真写 Settings
+  // 避免拖动滑块期间每次像素都 rebuildParticles, 性能急救
   function onBodyInput(e) {
     const t = e.target;
     const key = t.dataset && t.dataset.key;
     if (!key) return;
-    let val;
-    if (t.type === 'checkbox') {
-      val = t.checked;
-    } else if (t.type === 'range') {
-      val = parseFloat(t.value);
-      if (t.dataset.integer) val = Math.round(val);
+    if (t.type === 'checkbox' || t.tagName === 'SELECT') {
+      // 立即写 (checkbox/select 不会高频触发)
+      let val = t.type === 'checkbox' ? t.checked : t.value;
+      window.Settings.set(key, val);
+      return;
+    }
+    if (t.type === 'range') {
+      // 只更新 span 文字 (不调 Settings.set, 松手 change 事件才真写)
+      const val = parseFloat(t.value);
       const span = document.querySelector('[data-val-for="' + key + '"]');
       if (span) {
         const parts = key.split('.');
@@ -158,16 +166,31 @@
           if (it) span.textContent = fmtVal(val, it);
         }
       }
+    }
+  }
+  function onBodyChange(e) {
+    const t = e.target;
+    const key = t.dataset && t.dataset.key;
+    if (!key) return;
+    let val;
+    if (t.type === 'checkbox') {
+      val = t.checked;
+    } else if (t.type === 'range') {
+      val = parseFloat(t.value);
+      if (t.dataset.integer) val = Math.round(val);
     } else if (t.tagName === 'SELECT') {
       val = t.value;
     } else {
       return;
     }
+    // range 松手才真写, 触发 Settings.set -> apply (rebuildParticles 等)
     window.Settings.set(key, val);
   }
   function open() {
     render();
     const ov = document.getElementById('settings-overlay');
+    // 1.5 轮 v1.2.1+: 战略性 will-change
+    ov.style.willChange = 'opacity, transform';
     ov.hidden = false;
     // 强制 reflow, 触发 transition
     void ov.offsetWidth;
@@ -177,13 +200,54 @@
   function close() {
     const ov = document.getElementById('settings-overlay');
     ov.classList.remove('show');
-    setTimeout(() => { ov.hidden = true; }, 220);
+    // 退场: 用 transitionend 替 setTimeout 220ms (慢机器上不会跳变)
+    const onEnd = (e) => {
+      if (e.target !== ov) return;
+      if (e.propertyName !== 'opacity' && e.propertyName !== 'transform') return;
+      ov.removeEventListener('transitionend', onEnd);
+      ov.hidden = true;
+      ov.style.willChange = '';  // 释放 GPU
+    };
+    ov.addEventListener('transitionend', onEnd);
+    setTimeout(() => {
+      ov.removeEventListener('transitionend', onEnd);
+      if (!ov.classList.contains('show')) {
+        ov.hidden = true;
+        ov.style.willChange = '';
+      }
+    }, 350);
+    // 弹"应用设置中..."模态进度条, 遮住 settings 关闭 + 粒子 rebuild 期间
+    showApplyingModal();
+  }
+
+  // 模态进度条: 遮住 settings 关闭到粒子 rebuild 完成的感知延迟
+  function showApplyingModal() {
+    let modal = document.getElementById('settings-apply-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'settings-apply-modal';
+      modal.className = 'settings-apply-modal';
+      modal.setAttribute('role', 'status');
+      modal.setAttribute('aria-live', 'polite');
+      modal.innerHTML =
+        '<div class="settings-apply-stage">' +
+          '<div class="settings-apply-spinner" aria-hidden="true"></div>' +
+          '<div class="settings-apply-label">应用设置中…</div>' +
+        '</div>';
+      document.body.appendChild(modal);
+    }
+    requestAnimationFrame(() => modal.classList.add('show'));
+    // 实际粒子 rebuild 是同步的, 但 CSS 关闭动画 220ms + rebuild 100-300ms, 800ms 足够
+    setTimeout(() => {
+      modal.classList.remove('show');
+      setTimeout(() => { if (modal && modal.parentNode) modal.parentNode.removeChild(modal); }, 240);
+    }, 800);
   }
 
   function bind() {
     const body = document.getElementById('settings-body');
-    body.addEventListener('change', onBodyInput);
     body.addEventListener('input', onBodyInput);
+    body.addEventListener('change', onBodyChange);
 
     document.getElementById('btn-settings').addEventListener('click', open);
     document.getElementById('settings-close').addEventListener('click', close);
@@ -276,11 +340,28 @@
         '<button class="update-toast-close" id="update-toast-close">×</button>';
     }
     document.body.appendChild(toast);
+    // 1.5 轮 v1.2.1+: 战略性 will-change
+    toast.style.willChange = 'opacity, transform';
     requestAnimationFrame(() => toast.classList.add('show'));
 
     const close = () => {
       toast.classList.remove('show');
-      setTimeout(() => toast.remove(), 300);
+      // 退场: transitionend 替 setTimeout 300ms
+      const onEnd = (e) => {
+        if (e.target !== toast) return;
+        if (e.propertyName !== 'opacity' && e.propertyName !== 'transform') return;
+        toast.removeEventListener('transitionend', onEnd);
+        toast.style.willChange = '';
+        toast.remove();
+      };
+      toast.addEventListener('transitionend', onEnd);
+      setTimeout(() => {
+        toast.removeEventListener('transitionend', onEnd);
+        if (!toast.classList.contains('show')) {
+          toast.style.willChange = '';
+          toast.remove();
+        }
+      }, 380);
     };
     document.getElementById('update-toast-close').addEventListener('click', close);
     const installBtn = document.getElementById('update-toast-install');
@@ -293,6 +374,74 @@
     }
     setTimeout(close, phase === 'install' ? 12000 : 6000);
   }
+
+  // v1.2.1+: 首启"自动更新已开启"提示 toast
+  // 只弹一次 (autoUpdateFirstHintShown flag), 5s 自动消失或一键关闭
+  // 关闭: 调 Settings.set('autoUpdateEnabled', false) 真正关掉, 不是只关这个提醒
+  function showAutoUpdateHint() {
+    if (!window.Settings || typeof window.Settings.get !== 'function') return;
+    const s = window.Settings.get();
+    if (s.autoUpdateFirstHintShown) return;            // 已弹过, 不再骚扰
+    if (!s.autoUpdateEnabled) return;                  // 已关闭, 不需要提示
+    if (document.getElementById('auto-update-hint')) return;  // 已存在
+
+    // 立即写 flag (即使网络异常 / 用户立刻关窗, 都不会再弹第二次)
+    window.Settings.set('autoUpdateFirstHintShown', true);
+
+    const hint = document.createElement('div');
+    hint.id = 'auto-update-hint';
+    hint.className = 'update-toast update-toast-hint';
+    hint.setAttribute('role', 'status');
+    hint.setAttribute('aria-live', 'polite');
+    hint.innerHTML =
+      '<div class="update-toast-icon">🔄</div>' +
+      '<div class="update-toast-body">' +
+        '<div class="update-toast-title">自动检查更新已开启</div>' +
+        '<div class="update-toast-sub">' +
+          '启动时 + 每 1 小时, 匿名向 GitHub 查询新版本. 仅发送: 操作系统 / Electron / app 版本, 不含个人数据.' +
+        '</div>' +
+      '</div>' +
+      '<button class="update-toast-action update-toast-action-close" id="auto-update-hint-close">关闭</button>';
+
+    document.body.appendChild(hint);
+    hint.style.willChange = 'opacity, transform';
+    requestAnimationFrame(() => hint.classList.add('show'));
+
+    const close = (userAct) => {
+      hint.classList.remove('show');
+      const onEnd = (e) => {
+        if (e.target !== hint) return;
+        if (e.propertyName !== 'opacity' && e.propertyName !== 'transform') return;
+        hint.removeEventListener('transitionend', onEnd);
+        hint.style.willChange = '';
+        hint.remove();
+      };
+      hint.addEventListener('transitionend', onEnd);
+      setTimeout(() => {
+        hint.removeEventListener('transitionend', onEnd);
+        if (!hint.classList.contains('show')) {
+          hint.style.willChange = '';
+          hint.remove();
+        }
+      }, 380);
+      if (userAct) {
+        // 一键关闭 = 整个自动更新关掉 (不是只关这个提醒)
+        // 同时调 IPC 通知主进程停止定时扫描
+        try {
+          window.Settings.set('autoUpdateEnabled', false);
+          if (window.electronAPI && typeof window.electronAPI.autoUpdateSetEnabled === 'function') {
+            window.electronAPI.autoUpdateSetEnabled(false);
+          }
+        } catch (e) { /* 静默 */ }
+      }
+    };
+    document.getElementById('auto-update-hint-close').addEventListener('click', () => close(true));
+    // 5s 自动消失 (用户没点也算"已知情")
+    setTimeout(() => close(false), 5000);
+  }
+  // 暴露给 app.js / firstrun.js 调
+  window.LingJingSettingsUI = window.LingJingSettingsUI || {};
+  window.LingJingSettingsUI.showAutoUpdateHint = showAutoUpdateHint;
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
   } else {

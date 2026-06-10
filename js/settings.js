@@ -17,8 +17,11 @@
     live2d:    { visible: true, opacity: 1.00, model: 'Hiyori' },
     particles: { visible: true, count: 10 },
     clock:     { size: 140, opacity: 1.00, align: 'left' },
-    // v1.2.0: 自动更新 (默认开启, NSIS 装时勾选值优先, 装好后用户可关)
+    // v1.2.1: 自动更新 — 默认开启, 用户可关; 后台扫描间隔 (ms)
+    // 1.2.0 默认 6s 启动一次 + 用户手动点"立即检查" — 加 1h 周期扫描, 平衡"不打扰"和"不错过"
     autoUpdateEnabled: true,
+    autoUpdateCheckInterval: 3600000,   // 1 小时
+    autoUpdateFirstHintShown: false,    // 首启"已开启"提示 — 弹过一次就 true, 不再骚扰
   };
 
   let current = deepClone(DEFAULTS);
@@ -49,21 +52,30 @@
   }
 
   // 重建粒子 (条数变更时)
+  // v1.2.1 3 轮: DocumentFragment 一次性建 14 个, 1 次 reflow (vs 旧 14 次)
+  // v1.2.1 3 轮: animationDelay 改负数 (-15 ~ 0s), 粒子立即开始飘, 不等
+  // v1.2.1 3 轮: 删 inline willChange=transform (1.5 轮性能原则: CSS 永久 will-change 占 GPU, 留给 show/hide 战略性加)
+  // v1.2.1 3 轮: count=0 时立即清空 (旧版会保留动画空跑占 GPU)
   function rebuildParticles(count) {
     const c = document.getElementById('particles');
     if (!c) return;
-    c.innerHTML = '';
-    if (!count) return;
+    if (!count) {
+      c.innerHTML = '';
+      return;
+    }
+    const frag = document.createDocumentFragment();
     for (let i = 0; i < count; i++) {
       const p = document.createElement('div');
       p.className = 'particle';
-      p.style.left = Math.random() * 100 + '%';
-      p.style.animationDelay = Math.random() * 15 + 's';
+      p.style.left = (Math.random() * 100) + '%';
+      // 负 delay: 粒子像"已经飘了 X 秒", 打开页面就看到满屏飘, 不等 0~15s 启动
+      p.style.animationDelay = (-Math.random() * 15) + 's';
       p.style.animationDuration = (10 + Math.random() * 10) + 's';
       p.style.opacity = (Math.random() * 0.5 + 0.2).toFixed(2);
-      p.style.willChange = 'transform';
-      c.appendChild(p);
+      frag.appendChild(p);
     }
+    c.innerHTML = '';
+    c.appendChild(frag);
   }
 
   // 把当前设置写到 DOM
@@ -89,12 +101,19 @@
     }
 
     // 粒子
+    // v1.2.1 3 轮: 隐藏时切 animationPlayState: paused + display: none + 清 innerHTML
+    // 让粒子彻底停 (不占 GPU, 不跑 transform), 而不是 display:none 之后还空跑
     const p = document.getElementById('particles');
     if (p) {
-      p.style.display = current.particles.visible ? '' : 'none';
       if (current.particles.visible) {
+        p.style.display = '';
+        p.style.animationPlayState = 'running';
         const real = p.querySelectorAll('.particle').length;
         if (real !== current.particles.count) rebuildParticles(current.particles.count);
+      } else {
+        p.style.animationPlayState = 'paused';
+        p.style.display = 'none';
+        p.innerHTML = '';
       }
     }
 

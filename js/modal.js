@@ -38,13 +38,31 @@
   }
 
   function show() {
+    // 1.5 轮 v1.2.1+: 战略性 will-change (show 时加, hide 时移除, 避免永久占 GPU)
+    overlay.style.willChange = 'opacity, transform';
     overlay.hidden = false;
     void overlay.offsetWidth;
     overlay.classList.add('show');
   }
   function hide() {
+    // 退场: 用 transitionend 替 setTimeout 220ms (慢机器上不会跳变)
     overlay.classList.remove('show');
-    setTimeout(() => { overlay.hidden = true; }, 220);
+    const onEnd = (e) => {
+      if (e.target !== overlay && e.target !== box) return;
+      if (e.propertyName !== 'opacity' && e.propertyName !== 'transform') return;
+      overlay.removeEventListener('transitionend', onEnd);
+      overlay.hidden = true;
+      overlay.style.willChange = '';  // 释放 GPU
+    };
+    overlay.addEventListener('transitionend', onEnd);
+    // 兜底: 慢机器上 350ms 后强制 hidden (再保险)
+    setTimeout(() => {
+      overlay.removeEventListener('transitionend', onEnd);
+      if (!overlay.classList.contains('show')) {
+        overlay.hidden = true;
+        overlay.style.willChange = '';
+      }
+    }, 350);
   }
 
   function buildButtons(buttons) {

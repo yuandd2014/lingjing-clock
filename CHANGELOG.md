@@ -7,6 +7,43 @@
 
 ---
 
+## v1.2.1 (2026-06-10)
+
+**🔔 自动更新 — 让升级也轻巧。**
+
+### 新增
+
+- **🔔 自动检查更新 (1 小时周期)** — 启动 6 秒后静默问一次 GitHub "有新版本吗?", 之后每 1 小时再问一次; 有更新后台下载, 装好弹非阻塞 toast (右上角毛玻璃卡片); **不强制重启**, 您点"立即重启"才生效
+- **💡 首启一次性提示** — 首次启动 1.5 秒后弹蓝色 hint toast, 文案 "自动检查更新已开启 · 仅向 GitHub 问版本, 不上传任何数据", 配 "一键关闭" 按钮, 5 秒自动消失
+- **🔒 隐私 — 三条明文** — ① 只向 GitHub API 发 OS / Electron / app 版本 (GitHub 自动丢弃 IP); ② 不上报任何使用数据 / 屏幕截图 / 文件内容; ③ 网络异常静默失败, 不弹任何错
+- **🛠️ 设置面板 bug 修复** — "自动检查更新" 开关原本读不到值, 一直显示不勾选 (实际后台已开); 现 _system 顶层读取 + IPC 桥接 + 立即生效
+
+### 内部
+
+- `js/settings.js` 加 `DEFAULTS.autoUpdateCheckInterval: 3600000` (1h) + `DEFAULTS.autoUpdateFirstHintShown: false`
+- `js/settings-ui.js` 修 `_system` 顶层读取 bug + 加 `showAutoUpdateHint()` (蓝色变体 toast) + 暴露 `window.LingJingSettingsUI.showAutoUpdateHint`
+- `js/app.js` DOM ready 后 1.5s 触发 `showAutoUpdateHint()`
+- `preload.js` 暴露 `electronAPI.autoUpdateSetEnabled`
+- `main.js` 加 IPC `auto-update-set-enabled` + 1h `setInterval` 周期扫描
+- `css/style.css` 新增 `.update-toast-hint` (蓝色变体) + `.update-toast-action-close` 样式
+- `js/firstrun.js` 4 张引导卡 + 自动更新宽卡 (提示已开启)
+- `README.md` 新增 "🔄 自动更新 — 隐私说明" 段落
+- 官网 `lingjing-clock-website`: `changelog.html` v1.2.1 转正 + `about.html` 时间轴 5 个版本
+- `js/splash.js` 仪式感统一 — 装包模式 / 启动模式 都走 stage 渐隐 280ms (跟启动模式一致)
+- 新增顶层 `LICENSE` (MIT, year 2026, author yuandd2014, 25 行)
+
+### 测试
+
+- 静态测试 42/42 全过 (`build/tmp/test-autoupdate.js`)
+  - 自动更新默认值 / 周期 / IPC 桥 / 提示逻辑 / 设置持久化 全覆盖
+
+### 下载
+
+- 安装版: `LingJing.Clock.Setup.1.2.1.exe`
+- 便携版: `LingJingClock-Portable.exe`
+
+---
+
 ## v1.2.0 (2026-06-09)
 
 **灵境 安装仪式 + 自动更新 — 让升级也变得轻巧。**

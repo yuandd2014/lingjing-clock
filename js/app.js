@@ -29,6 +29,12 @@ document.addEventListener('keydown', (e) => {
 
 // 刷新按钮
 document.addEventListener('DOMContentLoaded', () => {
+  // 报告 particles ready (DOM 元素静态在 index.html, CSS 动画无 JS 初始化)
+  // 走 IPC 桥 → 主进程 → splash 本地 LingJingLoader
+  if (window.lingjingLoader) {
+    window.lingjingLoader.report('particles', 'ready');
+  }
+
   // 初始化天气
   if (typeof initWeather === 'function') {
     initWeather();
@@ -59,6 +65,14 @@ document.addEventListener('DOMContentLoaded', () => {
     controls.addEventListener('mouseenter', showControls);
     controls.addEventListener('mouseleave', scheduleHide);
   }
+
+  // v1.2.1+: 首启"自动检查更新已开启"提示 toast
+  // 延迟 1.5s 弹, 让 firstrun.js (如有) + 视觉先 settle
+  setTimeout(() => {
+    if (window.LingJingSettingsUI && typeof window.LingJingSettingsUI.showAutoUpdateHint === 'function') {
+      window.LingJingSettingsUI.showAutoUpdateHint();
+    }
+  }, 1500);
 });
 
 // 防止右键菜单 (可选, 默认开启, 像桌面 app 一样)

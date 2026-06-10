@@ -14,14 +14,19 @@
 
     <h1 class="splash-title" id="splash-title">灵境时钟</h1>
     <p class="splash-version" id="splash-version">v1.2.0</p>
+    <p class="splash-tagline" id="splash-tagline" hidden>正在唤醒灵境</p>
 
     <div class="splash-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
       <div class="splash-progress-bar" id="splash-progress-bar"></div>
     </div>
 
+    <!-- 0 轮 v1.2.1: 组件加载列表 (启动时由 splash.js 填充) -->
+    <ul class="splash-loader-list" id="splash-loader-list" hidden></ul>
+
     <p class="splash-hint" id="splash-hint">正在准备灵境…</p>
   </div>
 
+  <script src="js/loader.js"></script>
   <script src="js/splash.js"></script>
 </body>
 </html>

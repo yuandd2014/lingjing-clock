@@ -65,7 +65,10 @@ html, body {
   border-radius: 50%;
   animation: float 15s infinite linear;
   animation-fill-mode: forwards;
-  will-change: transform;
+  /* v1.2.1 3 轮: 删 will-change: transform (1.5 轮性能原则)
+     永久 will-change 会让浏览器一直给该元素建独立 GPU layer, 14 个粒子 = 14 个 layer 占显存
+     替代: animation-play-state: paused/running (settings.js apply 切) + CSS animation 本来就跑 transform
+     偶尔卡顿换流畅度: 想要平滑时用 JS 战略性加 willChange (留口子) */
 }
 
 @keyframes float {
@@ -653,22 +656,20 @@ html, body {
   width: 520px;
   max-width: 92vw;
   max-height: 86vh;
-  background: rgba(28, 28, 30, 0.92);
-  backdrop-filter: blur(40px) saturate(1.8);
-  -webkit-backdrop-filter: blur(40px) saturate(1.8);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  /* 1.5 轮 v1.2.1+: Apple 深色亚克力 (简单背光渲染, 性能妥协) */
+  background: rgba(28, 28, 30, 0.78);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 20px;
-  box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.5),
-    0 4px 16px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);  /* 顶高光 (背光渲染) */
   display: flex;
   flex-direction: column;
   overflow: hidden;
   color: #fff;
   transform: scale(0.96);
   opacity: 0;
-  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s ease;
+  transition: transform 0.22s ease, opacity 0.22s ease;  /* 统一 220ms */
 }
 .settings-overlay.show .settings-modal {
   transform: scale(1);
@@ -932,21 +933,19 @@ html, body {
 .modal-box {
   min-width: 360px;
   max-width: 460px;
-  background: rgba(28, 28, 30, 0.92);
-  backdrop-filter: blur(40px) saturate(1.8);
-  -webkit-backdrop-filter: blur(40px) saturate(1.8);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  /* 1.5 轮 v1.2.1+: Apple 深色亚克力 (简单背光渲染) */
+  background: rgba(28, 28, 30, 0.78);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 18px;
-  box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.5),
-    0 4px 16px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);  /* 顶高光 */
   padding: 28px 28px 22px;
   text-align: center;
   color: #fff;
   transform: scale(0.94);
   opacity: 0;
-  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s ease;
+  transition: transform 0.22s ease, opacity 0.22s ease;  /* 统一 220ms */
 }
 .modal-overlay.show .modal-box { transform: scale(1); opacity: 1; }
 
@@ -1217,20 +1216,18 @@ html, body {
   max-height: 86vh;
   overflow-y: auto;
   padding: 56px 64px 48px;
-  background: rgba(28, 28, 30, 0.86);
-  backdrop-filter: blur(40px) saturate(1.8);
-  -webkit-backdrop-filter: blur(40px) saturate(1.8);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  /* 1.5 轮 v1.2.1+: Apple 深色亚克力 (简单背光渲染) */
+  background: rgba(28, 28, 30, 0.78);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 28px;
-  box-shadow:
-    0 32px 80px rgba(0, 0, 0, 0.6),
-    0 8px 24px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);  /* 顶高光 */
   color: #fff;
   text-align: center;
   transform: translateY(20px) scale(0.96);
   opacity: 0;
-  transition: transform 0.34s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.28s ease;
+  transition: transform 0.22s ease, opacity 0.22s ease;  /* 统一 220ms (从 340/280ms) */
 }
 .firstrun-overlay.show .firstrun-stage {
   transform: translateY(0) scale(1);
@@ -1239,7 +1236,6 @@ html, body {
 .firstrun-overlay.hide .firstrun-stage {
   transform: translateY(-12px) scale(0.98);
   opacity: 0;
-  transition-duration: 0.22s;
 }
 
 /* 灵字标 (Logo 替代) */
@@ -1255,7 +1251,9 @@ html, body {
   box-shadow:
     0 8px 24px rgba(120, 200, 255, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  animation: markFloat 4s ease-in-out infinite;
+  /* v1.2.1 2 轮: markFloat 改鼠标驱动 (JS rAF + translate3d), 删 4s 自动 animation */
+  /* transition 短 → 跟手; will-change 在 show/dismiss JS 战略性加, 释放 GPU */
+  transition: transform 0.12s ease-out;
 }
 .firstrun-mark-glyph {
   font-size: 30px;
@@ -1298,12 +1296,17 @@ html, body {
   margin: 0 0 32px;
 }
 
-/* 引导卡 3 张 */
+/* 引导卡 3 张 (v1.2.1+: 4 张, 宽的那张跨 2 列) */
 .firstrun-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
   margin-bottom: 32px;
+}
+.firstrun-card-wide {
+  grid-column: 1 / -1;  /* 跨所有列, 单独一行 */
+  background: rgba(120, 180, 255, 0.06);
+  border-color: rgba(120, 180, 255, 0.18);
 }
 .firstrun-card {
   padding: 20px 16px 18px;
@@ -1313,8 +1316,9 @@ html, body {
   text-align: center;
   opacity: 0;
   transform: translateY(20px);
-  transition: transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1),
-              opacity 0.32s ease,
+  /* v1.2.1 2 轮: 跟手性 — transform/opacity 0.28s/0.32s 砍到 0.12s/0.16s */
+  transition: transform 0.12s cubic-bezier(0.22, 0.61, 0.36, 1),
+              opacity 0.16s ease,
               background 0.22s ease,
               border-color 0.22s ease,
               box-shadow 0.22s ease;
@@ -1472,10 +1476,23 @@ html, body {
   .firstrun-card { transition-delay: 0ms !important; }
 }
 
+/* 全局减少动效兜底 (v1.2.1+): 覆盖 wallpaper / particle / btn / toast / modal / settings 等所有非 firstrun 动画/过渡 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .light-sweep { display: none; }
+  .firstrun-btn-primary { animation: none !important; }
+}
+
 /* 窄屏 (平板/小窗): 卡片变 1 列 */
 @media (max-width: 640px) {
   .firstrun-stage { padding: 40px 24px 32px; }
   .firstrun-cards { grid-template-columns: 1fr; }
+  .firstrun-card-wide { grid-column: auto; }  /* 窄屏不再跨列, 自然单列 */
   .firstrun-title { font-size: 28px; }
 }
 
@@ -1521,16 +1538,17 @@ html, body {
   min-width: 320px;
   max-width: 420px;
   border-radius: 14px;
-  background: rgba(20, 20, 38, 0.65);
-  backdrop-filter: blur(28px) saturate(1.6);
-  -webkit-backdrop-filter: blur(28px) saturate(1.6);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  /* 1.5 轮 v1.2.1+: Apple 深色亚克力 (简单背光渲染) */
+  background: rgba(20, 20, 38, 0.72);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);  /* 顶高光 (单层, 性能妥协) */
   color: #fff;
   font-family: inherit;
-  border: 1px solid rgba(180, 200, 255, 0.18);
+  border: 1px solid rgba(180, 200, 255, 0.14);
   opacity: 0;
   transform: translateX(40px);
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  transition: opacity 0.22s ease, transform 0.22s ease;  /* 统一 220ms (从 300ms) */
   pointer-events: auto;
 }
 .update-toast.show {
@@ -1589,6 +1607,25 @@ html, body {
   color: rgba(255, 255, 255, 0.9);
 }
 
+/* v1.2.1+: 首启 hint 变体 (蓝色调, info 感) */
+.update-toast-hint {
+  border-color: rgba(120, 180, 255, 0.22);
+  background: rgba(20, 28, 48, 0.74);  /* 蓝调暗, 跟 update 通知区分 */
+}
+.update-toast-hint .update-toast-icon {
+  color: rgba(140, 200, 255, 0.95);
+}
+.update-toast-action-close {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+}
+.update-toast-action-close:hover {
+  background: rgba(255, 255, 255, 0.14);
+  transform: none;  /* 不要跟主按钮一起 translate, 视觉降级 */
+  box-shadow: none;
+}
+
 /* 设置面板内 "检查" 按钮 */
 .settings-action-btn {
   background: linear-gradient(135deg, rgba(120, 180, 255, 0.7), rgba(160, 130, 240, 0.7));
@@ -1609,4 +1646,61 @@ html, body {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+}
+
+/* ============================================================
+   设置应用模态进度条 (settings-ui.js close 触发, 0 轮 v1.2.1+)
+   遮住 settings 关闭动画 + 粒子 rebuild 期间的感知延迟
+   ============================================================ */
+.settings-apply-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 20, 40, 0.35);
+  backdrop-filter: blur(8px) saturate(1.4);
+  -webkit-backdrop-filter: blur(8px) saturate(1.4);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10000;  /* 高于 settings-overlay (9999) */
+  transition: opacity 0.24s ease;
+}
+.settings-apply-modal.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.settings-apply-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 32px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+}
+.settings-apply-spinner {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255, 255, 255, 0.18);
+  border-top-color: rgba(160, 130, 240, 0.85);
+  animation: settingsApplySpin 0.8s linear infinite;
+}
+@keyframes settingsApplySpin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.settings-apply-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', -apple-system, sans-serif;
+}
+@media (prefers-reduced-motion: reduce) {
+  .settings-apply-spinner { animation: none; border-top-color: rgba(160, 130, 240, 0.5); }
+  .settings-apply-modal { transition: none; }
 }

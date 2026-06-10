@@ -21,9 +21,13 @@
     if (isInitialized) return;
     isInitialized = true;
 
+    // 报告加载中 (走 IPC 桥 → 主进程 → splash 本地 LingJingLoader)
+    try { window.lingjingLoader && window.lingjingLoader.report('live2d', 'loading'); } catch (e) { /* 静默 */ }
+
     const canvas = document.getElementById(CONFIG.canvasId);
     if (!canvas) {
       console.error('Live2D canvas not found');
+      try { window.lingjingLoader && window.lingjingLoader.report('live2d', 'error', 'canvas 不存在'); } catch (e) {}
       return;
     }
 
@@ -104,9 +108,13 @@
       });
 
       console.log('Live2D model loaded successfully');
+      // 报告加载完成 (走 IPC 桥)
+      try { window.lingjingLoader && window.lingjingLoader.report('live2d', 'ready'); } catch (e) { /* 静默 */ }
 
     } catch (error) {
       console.error('Live2D load error:', error);
+      // 报告加载失败 (用本地降级 / 隐藏 canvas, 不阻塞主流程, 走 IPC 桥)
+      try { window.lingjingLoader && window.lingjingLoader.report('live2d', 'error', error && error.message); } catch (e) {}
       canvas.style.display = 'none';
     }
   }

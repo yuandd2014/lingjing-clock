@@ -4,7 +4,7 @@
 
 让 Windows 桌面, 拥有一面映照时间的镜子。
 
-[![下载 v1.2.0](https://img.shields.io/badge/下载-v1.2.0-0071e3?style=for-the-badge)](https://github.com/yuandd2014/lingjing-clock/releases/latest)
+[![下载 v1.2.1](https://img.shields.io/badge/下载-v1.2.1-0071e3?style=for-the-badge)](https://github.com/yuandd2014/lingjing-clock/releases/latest)
 [![平台](https://img.shields.io/badge/平台-Windows%2010%2F11-0071e3?style=flat-square)](#)
 [![架构](https://img.shields.io/badge/架构-x64-34c759?style=flat-square)](#)
 [![Electron](https://img.shields.io/badge/Electron-31.7.7-47848F?style=flat-square)](#)
@@ -22,7 +22,7 @@
 
 ---
 
-## 🎁 这次更新 · v1.2.0
+## 🎁 这次更新 · v1.2.1
 
 **灵境 安装仪式 + 自动更新 — 让升级也变得轻巧。**
 
@@ -82,7 +82,7 @@
 
 | 文件 | 大小 | 说明 |
 |---|---|---|
-| **`LingJing.Clock.Setup.1.2.0.exe`** | **95 MB** | NSIS 安装版 (推荐) |
+| **`LingJing.Clock.Setup.1.2.1.exe`** | **95 MB** | NSIS 安装版 (推荐) |
 | **`LingJingClock-Portable.exe`** | **93 MB** | 便携版, 解压即用 |
 | `LingJing.Clock.Setup.1.2.0.exe.blockmap` | 96 KB | 增量更新用 |
 
@@ -174,6 +174,49 @@ key = atob(_k1 + _k2).split('').reverse().join('')
 - **这不是真正的安全加密** — 任何前端 JS 都能被浏览器调试或反编译还原
 - 仅用于**防止普通用户的简单文本搜索 (grep / IDE 搜索)** 和直接复制
 - 如果你 fork 本项目并发布到公开渠道, 请**确保你有合法的 API Key 使用权**
+
+---
+
+## 🔄 自动更新 — 隐私说明 (v1.2.1+)
+
+灵境时钟内置了"自动检查更新"功能 (默认开启), 让您不必手动下载新版本。
+
+### 工作方式
+
+- **启动后 6 秒**: 静默调用一次, 检查 GitHub Releases 有没有新版本
+- **之后每 1 小时**: 同样静默调用一次
+- **发现新版本**: 后台下载 (不打扰) → 下载完成弹非阻塞 toast → 您点"立即重启"才生效
+- **不强制重启**: 您可以稍后再说, 不会半夜被强制更新吵醒
+
+### 隐私 — 我们发什么, 不发什么
+
+✅ **发送的 (匿名, 必需)**
+
+| 字段 | 用途 |
+|---|---|
+| 操作系统版本 (Windows 10/11) | GitHub API 路由 |
+| Electron 版本 | GitHub API 路由 |
+| 灵境时钟当前版本 | 判断有没有更新 |
+| 检查时间戳 | 缓存优化 |
+
+🚫 **不发送的 (您的东西我们不要)**
+
+- ❌ 您的 IP **不记录** (GitHub 自动丢弃)
+- ❌ 任何使用数据 (打开了什么, 停留多久, 任何)
+- ❌ 任何文件内容 / 屏幕截图 / 个人数据
+
+> 简言之: 我们**只**问 GitHub "有新版本吗?", **不**上传任何东西, **不**上报任何统计
+
+### 三种关闭方式
+
+1. **首启提示一键关闭** — 首次启动 5 秒内会弹"自动检查更新已开启"提示, 直接点"关闭"
+2. **设置 → 系统更新 → 自动检查更新 (关)** — 随时可关
+3. **NSIS 装时取消勾选** — 安装时"启用自动检查更新"留空, 写注册表永久记住
+
+### 网络异常兜底
+
+- 无网络 / 访问不了 GitHub → 静默失败, 不弹任何错
+- 检查失败 → 下一个 1 小时周期再试
 
 ---
 

@@ -735,6 +735,9 @@ async function loadWeather(coords) {
   const lon = coords?.lon || WEATHER_CONFIG.defaultLon;
   const errors = [];
 
+  // 报告加载中 (走 IPC 桥 → splash 本地 LingJingLoader)
+  try { window.lingjingLoader && window.lingjingLoader.report('weather', 'loading'); } catch (e) { /* 静默 */ }
+
   // 1) 和风天气 主力 (用户专属Host, air/now是付费接口已用allSettled容错)
   try {
     const weather = await retryOnce(() => fetchFromHeFeng(lat, lon), 8000);
@@ -742,6 +745,8 @@ async function loadWeather(coords) {
       console.log('[Weather] 和风 success:', weather.current.temp + '°', 'air=' + (weather.air ? 'yes' : 'no'));
       cacheWeather(weather);
       renderWeather(weather);
+      // 报告加载完成 (走 IPC 桥)
+      try { window.lingjingLoader && window.lingjingLoader.report('weather', 'ready'); } catch (e) { /* 静默 */ }
       return;
     }
   } catch (e) { errors.push('和风: ' + e.message); console.warn('[Weather] 和风失败:', e.message); }
@@ -753,6 +758,8 @@ async function loadWeather(coords) {
       console.log('[Weather] wttr.in success:', weather.location.city, weather.current.temp + '°');
       cacheWeather(weather);
       renderWeather(weather);
+      // 报告加载完成 (走 IPC 桥)
+      try { window.lingjingLoader && window.lingjingLoader.report('weather', 'ready'); } catch (e) { /* 静默 */ }
       return;
     }
   } catch (e) { errors.push('wttr: ' + e.message); console.warn('[Weather] wttr失败:', e.message); }
@@ -764,12 +771,16 @@ async function loadWeather(coords) {
       console.log('[Weather] open-meteo success:', weather.current.temp + '°');
       cacheWeather(weather);
       renderWeather(weather);
+      // 报告加载完成 (走 IPC 桥)
+      try { window.lingjingLoader && window.lingjingLoader.report('weather', 'ready'); } catch (e) { /* 静默 */ }
       return;
     }
   } catch (e) { errors.push('open-meteo: ' + e.message); console.warn('[Weather] open-meteo失败:', e.message); }
 
   console.error('[Weather] 全部数据源失败:', errors);
   showErrorState(errors);
+  // 报告加载失败 (走 IPC 桥, 错误也算 done, splash 不会卡)
+  try { window.lingjingLoader && window.lingjingLoader.report('weather', 'error', errors[0] || '数据源失败'); } catch (e) { /* 静默 */ }
 }
 
 function initWeather() {

@@ -71,6 +71,11 @@
             <h3 class="firstrun-card-title">快捷键</h3>
             <p class="firstrun-card-desc"><kbd>Esc</kbd> 退出 · <kbd>Ctrl</kbd>+<kbd>R</kbd> 刷新 · 右下 ⚙ 唤出设置</p>
           </article>
+          <article class="firstrun-card firstrun-card-wide" style="--card-delay: 940ms">
+            <div class="firstrun-card-icon" aria-hidden="true">🔄</div>
+            <h3 class="firstrun-card-title">自动检查更新 (已开启)</h3>
+            <p class="firstrun-card-desc">启动时 + 每 1 小时, 匿名问 GitHub "有新版本吗?". <strong>不</strong>上传任何使用数据, <strong>不</strong>记录您的 IP. 设置 → 系统更新 可一键关掉.</p>
+          </article>
         </div>
 
         <div class="firstrun-actions">
@@ -131,6 +136,10 @@
     if (!force && !isNeeded()) return false;
 
     lastFocus = document.activeElement;
+    // 1.5 轮 v1.2.1+: 战略性 will-change (show 时加, dismiss 时移除)
+    overlay.style.willChange = 'opacity, transform';
+    const stage = overlay.querySelector('.firstrun-stage');
+    if (stage) stage.style.willChange = 'opacity, transform';
     overlay.hidden = false;
     // 强制 reflow, 让 transition / animation 能跑
     void overlay.offsetWidth;
@@ -139,6 +148,9 @@
     setTimeout(() => {
       if (primaryBtn) primaryBtn.focus({ preventScroll: true });
     }, 80);
+
+    // v1.2.1 2 轮: 鼠标驱动 markFloat — mousemove 算 ±8px 偏移, rAF 平滑
+    unbindMarkFloat = bindMarkFloat(stage);
 
     return true;
   }
@@ -150,14 +162,30 @@
     if (!overlay || overlay.hidden) return;
     overlay.classList.remove('show');
     overlay.classList.add('hide');
-    setTimeout(() => {
+    // 退场: 用 transitionend 替 setTimeout 280ms (慢机器上不会跳变)
+    const onEnd = (e) => {
+      if (e.target !== overlay && !(e.target && e.target.classList && e.target.classList.contains('firstrun-stage'))) return;
+      if (e.propertyName !== 'opacity' && e.propertyName !== 'transform') return;
+      overlay.removeEventListener('transitionend', onEnd);
       overlay.hidden = true;
       overlay.classList.remove('hide');
+      overlay.style.willChange = '';  // 释放 GPU
+      const stage = overlay.querySelector('.firstrun-stage');
+      if (stage) stage.style.willChange = '';
       // 还原焦点
       if (lastFocus && typeof lastFocus.focus === 'function') {
         try { lastFocus.focus({ preventScroll: true }); } catch (e) {}
       }
-    }, 280);
+    };
+    overlay.addEventListener('transitionend', onEnd);
+    setTimeout(() => {
+      overlay.removeEventListener('transitionend', onEnd);
+      if (overlay.classList.contains('hide')) {
+        overlay.hidden = true;
+        overlay.classList.remove('hide');
+        overlay.style.willChange = '';
+      }
+    }, 380);
     markDone();
     // 触发自定义事件, 设置面板可以监听
     try {
@@ -165,6 +193,60 @@
         detail: { started: !!userStart }
       }));
     } catch (e) {}
+
+    // v1.2.1 2 轮: 释放 markFloat mousemove 监听 + rAF + inline transform
+    if (typeof unbindMarkFloat === 'function') {
+      try { unbindMarkFloat(); } catch (e) {}
+      unbindMarkFloat = null;
+    }
+  }
+
+  // 灵字 mark 鼠标驱动 — 跟手 ±8px, mouseleave 慢回中心
+  // 用 rAF + lerp 平滑 (1.5 轮性能原则: 不用 setInterval, 不用每像素 setStyle)
+  function bindMarkFloat(stageEl) {
+    if (!stageEl) return null;
+    const mark = stageEl.querySelector('.firstrun-mark');
+    if (!mark) return null;
+    // prefers-reduced-motion 用户: 直接返回 null, 保持 CSS 默认静态
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return null;
+
+    let raf = 0;
+    let tx = 0, ty = 0;  // 目标
+    let cx = 0, cy = 0;  // 当前
+    const RANGE = 8;     // px 最大偏移
+
+    const tick = () => {
+      cx += (tx - cx) * 0.18;
+      cy += (ty - cy) * 0.18;
+      mark.style.transform = 'translate3d(' + cx.toFixed(2) + 'px, ' + cy.toFixed(2) + 'px, 0)';
+      if (Math.abs(tx - cx) > 0.05 || Math.abs(ty - cy) > 0.05) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        raf = 0;
+      }
+    };
+    const onMove = (e) => {
+      const rect = stageEl.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      const px = (e.clientX - rect.left) / rect.width;   // 0~1
+      const py = (e.clientY - rect.top)  / rect.height;  // 0~1
+      tx = (px - 0.5) * 2 * RANGE;  // -RANGE ~ +RANGE
+      ty = (py - 0.5) * 2 * RANGE;
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+    const onLeave = () => {
+      tx = 0; ty = 0;
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+    stageEl.addEventListener('mousemove', onMove);
+    stageEl.addEventListener('mouseleave', onLeave);
+
+    return function unbind() {
+      stageEl.removeEventListener('mousemove', onMove);
+      stageEl.removeEventListener('mouseleave', onLeave);
+      if (raf) { cancelAnimationFrame(raf); raf = 0; }
+      mark.style.transform = '';
+    };
   }
 
   // 重置 flag (供设置面板"重新显示欢迎页" 调用)
@@ -182,14 +264,21 @@
   };
 
   // 启动: 首次安装才自动展示
+  // 等 LingJingLoader 4 组件 ready 才展示 (走 IPC 桥), 避免 250ms 抢跑挡加载
   function boot() {
-    if (isNeeded()) {
-      // 延迟 250ms, 让其他模块先初始化, 避免欢迎页挡住加载动效
-      setTimeout(() => show(false), 250);
+    if (!isNeeded()) return;
+    if (window.lingjingLoader && typeof window.lingjingLoader.onReady === 'function') {
+      window.lingjingLoader.onReady(() => {
+        // 略延迟 100ms, 让主窗口完全 settle 再弹
+        setTimeout(() => show(false), 100);
+      });
+    } else {
+      // 兜底: 开发 / 装包模式没有 lingjingLoader, 800ms 后展示
+      setTimeout(() => show(false), 800);
     }
   }
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
+    window.addEventListener('DOMContentLoaded', boot);
   } else {
     boot();
   }

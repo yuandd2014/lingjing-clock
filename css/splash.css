@@ -178,10 +178,91 @@ html, body {
   100% { opacity: 1; transform: translateY(0); }
 }
 
+/* 副标题 (启动模式, 0 轮 v1.2.1+) */
+.splash-tagline {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 400;
+  letter-spacing: 0.3px;
+  margin-bottom: 14px;
+  position: relative;
+  z-index: 2;
+  min-height: 16px;
+  animation: hintFade 0.4s ease-out;
+}
+
+/* 组件加载列表 (启动模式, 0 轮 v1.2.1+) */
+.splash-loader-list {
+  list-style: none;
+  margin: 0 auto 14px;
+  padding: 10px 14px;
+  width: 280px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+  z-index: 2;
+}
+.splash-loader-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 20px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+  transition: color 0.25s ease;
+}
+.splash-loader-icon {
+  flex: 0 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.5);
+  transition: color 0.25s ease;
+}
+.splash-loader-name {
+  flex: 1;
+  text-align: left;
+}
+.splash-loader-state {
+  flex: 0 0 auto;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.45);
+  transition: color 0.25s ease;
+}
+/* 旋转 spinner */
+.splash-loader-spinner {
+  animation: splashLoaderSpin 1.2s linear infinite;
+  transform-origin: 50% 50%;
+}
+@keyframes splashLoaderSpin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+/* ready / error 状态 */
+.splash-loader-item[data-state="ready"] {
+  color: rgba(255, 255, 255, 0.85);
+}
+.splash-loader-item[data-state="ready"] .splash-loader-icon {
+  color: #78e0a8;  /* 浅绿 */
+}
+.splash-loader-item[data-state="ready"] .splash-loader-state {
+  color: rgba(255, 255, 255, 0.7);
+}
+.splash-loader-item[data-state="error"] .splash-loader-icon {
+  color: #ffb38a;  /* 浅橙, 不是红色, "用本地"是好的 */
+}
+.splash-loader-item[data-state="error"] .splash-loader-state {
+  color: rgba(255, 255, 255, 0.7);
+}
+
 /* 减弱动效 */
 @media (prefers-reduced-motion: reduce) {
   .splash-stage { animation: none; }
   .light-sweep::before { animation: none; opacity: 1; }
   .splash-mark { animation: none; }
   .splash-hint { animation: none; }
+  .splash-tagline { animation: none; }
+  .splash-loader-spinner { animation: none; }
 }

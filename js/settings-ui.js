@@ -67,6 +67,23 @@
         { type: 'action', key: 'checkNow', label: '立即检查更新' },
       ],
     },
+    // v1.3.0: 主题色/排版 — 8 个灵境品牌色 + 字体大小 0.8x-1.4x
+    {
+      key: 'theme', title: '主题', icon: '🎨',
+      items: [
+        { type: 'select', key: 'accent', label: '主题色',
+          options: [
+            { v: 'aurora-purple', t: '极光紫' },
+            { v: 'mint-green',    t: '薄荷绿' },
+            { v: 'dark-gold',     t: '暗金' },
+            { v: 'glacier-blue',  t: '冰川蓝' },
+            { v: 'gothic-grey',   t: '哥特灰' },
+            { v: 'peach-pink',    t: '蜜桃粉' },
+            { v: 'wave-cyan',     t: '电波青' },
+            { v: 'sweet-orange',  t: '甜橙' },
+          ] },
+      ],
+    },
   ];
 
   function fmtVal(v, item) {

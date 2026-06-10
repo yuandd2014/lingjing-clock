@@ -7,6 +7,23 @@ const hint = document.getElementById('splash-hint');
 const tagline = document.getElementById('splash-tagline');
 const loaderList = document.getElementById('splash-loader-list');
 const stage = document.querySelector('.splash-stage');
+const versionEl = document.getElementById('splash-version');
+
+// v1.3.0: 版本号从 URL ?v= 动态填 (主进程 main.js loadFile 时传 app.getVersion())
+// 之前 splash.html 硬编码 v1.2.0 + splash.js tagline 硬编码 v1.2.1 → 2 处不一致
+// 现在 .splash-version 是唯一版本号显示, 永远跟 package.json 一致
+function fillVersion() {
+  if (!versionEl) return;
+  const params = new URLSearchParams(location.search);
+  const v = params.get('v');
+  if (v) {
+    versionEl.textContent = 'v' + v;
+  } else {
+    // 兜底: 没传 v 时不显示
+    versionEl.textContent = '';
+  }
+}
+fillVersion();
 
 function dismiss() {
   try {
@@ -98,9 +115,10 @@ function initInstall() {
 // ===== 启动模式: 接入 LingJingLoader, 等真 ready =====
 function initStartup() {
   // 副标题 (启动模式才有, 装包模式没有)
+  // v1.3.0: tagline 不再带版本号 — 版本号统一由 .splash-version 元素显示 (避免 2 处重复)
   if (tagline) {
     tagline.hidden = false;
-    tagline.textContent = 'v1.2.1 · 正在唤醒灵境';
+    tagline.textContent = '正在唤醒灵境';
   }
 
   // 渲染 loader 列表

@@ -29,6 +29,11 @@ document.addEventListener('keydown', (e) => {
 
 // 刷新按钮
 document.addEventListener('DOMContentLoaded', () => {
+  // v1.3.0 bug 修 B1: 启动时应用主题色 + 字体缩放
+  // applyTheme 函数已存在, 但没有任何地方调用, 主题色看不出应用
+  // Theme / Settings 是 IIFE 注入到 window 的全局, 隐式访问即可
+  Theme.applyTheme(Settings.get().theme);
+
   // 报告 particles ready (DOM 元素静态在 index.html, CSS 动画无 JS 初始化)
   // 走 IPC 桥 → 主进程 → splash 本地 LingJingLoader
   if (window.lingjingLoader) {

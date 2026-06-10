@@ -7,6 +7,52 @@
 
 ---
 
+## v1.3.0 (2026-06-10)
+
+**🎨 主题色 — 让灵境也跟你的眼睛。**
+
+### 新增
+
+- **🎨 主题色切换 (8 色灵境品牌色)** — 设置面板新增 "主题" 卡片, 8 个灵境品牌色可选 (极光紫 / 薄荷绿 / 暗金 / 冰川蓝 / 哥特灰 / 蜜桃粉 / 电波青 / 甜橙); 切主题色 → 4 个 button 背景 + 1 spinner 边框 + 1 link hover 原子切换, 屏幕不闪
+  - CSS 变量主题系统: `:root --primary-accent / --text-primary / --bg-base / --border-soft / --particle-tint / --hover-glow`
+  - 启动时 + 任何设置变更后, 主题色自动应用 (`app.js` 启动调 + `settings.js` apply() 末尾调, 双保险)
+  - localStorage 持久化, 关闭重启后记住
+- **🔖 Splash 版本号动态化** — 之前 `splash.html` 硬编码 v1.2.0 + `js/splash.js` tagline 硬编码 v1.2.1, 启动模式 splash 上 2 处版本号不一致; 现在统一从 `package.json` → `app.getVersion()` → URL `?v=` → splash.js 动态填 `.splash-version` 元素, 唯一来源, 永远一致
+  - Electron `loadFile` 用 `query: { v: app.getVersion() }` option 传 query (不能字符串拼接到 path, 会 `ERR_FILE_NOT_FOUND`)
+
+### 内部
+
+- 新增 `js/theme.js` (IIFE 闭包, 公开 `window.Theme = { THEME_PRESETS, applyTheme, hexOf }`)
+- `js/settings.js` 加 `theme: { accent: 'aurora-purple' }` 字段
+- `js/settings-ui.js` 加 "主题" section (select accent)
+- `js/app.js` `DOMContentLoaded` 调 `Theme.applyTheme(Settings.get().theme)`
+- `js/settings.js` `apply()` 末尾调 `Theme.applyTheme(current.theme)`
+- `css/style.css` 加 `:root` 6 个 var + html/body 用 var + 5 处 button 背景 + 1 spinner border-top + 1 link hover 改用 `var(--primary-accent)` (8 处)
+- `main.js` 改 splashWin loadFile 用 `query: { v: app.getVersion() }` option
+- `splash.html` 删硬编码 `v1.2.0`, 留空 `<p id="splash-version"></p>`
+- `js/splash.js` 加 `fillVersion()` 读 URL `?v=` 填 DOM, tagline 删硬编码 v1.2.1
+
+### 修复 (源码层)
+
+- **Splash 启动失败 (v1.3.0 第一次 main.js 改动用 `?v=` 字符串拼接到 path)** — `ERR_FILE_NOT_FOUND`, 应用打不开; 改用 `query: { v: app.getVersion() }` option 修
+
+### 测试
+
+- 静态测试 32/32 全过 (`build/tmp/test-theme.js`)
+  - DEFAULTS.theme.accent / THEME_PRESETS 8 色 / applyTheme 写 `--primary-accent` / `:root` 6 var / settings-ui SECTIONS theme / theme.js 引入位置 / html/body 块改 var / app.js 启动调 applyTheme / settings.js apply() 末尾调 applyTheme / 5+3 处 css `var(--primary-accent)` 引用 / splash 版本号动态化 6 项 全覆盖
+
+### 已知限制
+
+- **字体大小功能砍掉** — v1.3.0 推 3 轮 bug, 主屏字体大小维持 160/24/72/42/48 px 不变, 仅保留主题色 (8 色切换)
+- **品牌资产 (NSIS 头图 / 侧栏 / 图标) 复用 v1.2.0** — 计划 v1.3.1 PATCH 时重烧新一版
+
+### 下载
+
+- 安装版: `LingJing.Clock.Setup.1.3.0.exe`
+- 便携版: `LingJingClock-Portable.exe`
+
+---
+
 ## v1.2.1 (2026-06-10)
 
 **🔔 自动更新 — 让升级也轻巧。**

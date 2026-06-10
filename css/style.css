@@ -1,5 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700;900&family=Orbitron:wght@400;700;900&display=swap');
 
+/* v1.3.0: 主题色变量 — 6 个核心颜色, 切换主题时只改这里 */
+:root {
+  --primary-accent: #B57BFF;
+  --text-primary: #ffffff;
+  --bg-base: #000000;
+  --border-soft: rgba(255, 255, 255, 0.1);
+  --particle-tint: rgba(255, 255, 255, 0.6);
+  --hover-glow: rgba(181, 123, 255, 0.4);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -11,8 +21,9 @@ html, body {
   height: 100%;
   overflow: hidden;
   font-family: 'Noto Sans SC', sans-serif;
-  color: #ffffff;
-  background: #000;
+  /* v1.3.0: 改用 var(--text-primary) / var(--bg-base) — 主题色切换时原子生效 */
+  color: var(--text-primary);
+  background: var(--bg-base);
 }
 
 /* 壁纸背景 */
@@ -1405,16 +1416,18 @@ html, body {
   align-items: center;
   gap: 8px;
   color: #fff;
-  background: linear-gradient(135deg, rgba(120, 180, 255, 0.85), rgba(160, 130, 240, 0.85));
+  /* v1.3.0 bug 修 B5: 主题色按钮 — 跟随 --primary-accent */
+  background: var(--primary-accent);
   box-shadow:
-    0 6px 20px rgba(120, 160, 240, 0.32),
+    0 6px 20px var(--hover-glow),
     inset 0 1px 0 rgba(255, 255, 255, 0.22);
   animation: btnBreath 1.8s ease-in-out infinite;
 }
 .firstrun-btn-primary:hover {
   transform: translateY(-1px) scale(1.03);
+  /* v1.3.0 bug 修 B5: 按钮 hover 阴影跟随主题色 */
   box-shadow:
-    0 10px 28px rgba(120, 160, 240, 0.42),
+    0 10px 28px var(--hover-glow),
     inset 0 1px 0 rgba(255, 255, 255, 0.28);
   animation: none;
 }
@@ -1429,8 +1442,9 @@ html, body {
   transform: translateX(3px);
 }
 @keyframes btnBreath {
-  0%, 100% { box-shadow: 0 6px 20px rgba(120, 160, 240, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.22); }
-  50%      { box-shadow: 0 8px 26px rgba(120, 160, 240, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.28); }
+  /* v1.3.0 bug 修 B5: 呼吸动画阴影跟随主题色 */
+  0%, 100% { box-shadow: 0 6px 20px var(--hover-glow), inset 0 1px 0 rgba(255, 255, 255, 0.22); }
+  50%      { box-shadow: 0 8px 26px var(--hover-glow), inset 0 1px 0 rgba(255, 255, 255, 0.28); }
 }
 
 /* 点击 ripple (CSS 伪元素, 不依赖 JS) */
@@ -1517,8 +1531,9 @@ html, body {
   transition: color 0.18s ease, background 0.18s ease;
 }
 .settings-link:hover {
-  color: rgba(180, 200, 255, 0.95);
-  background: rgba(180, 200, 255, 0.06);
+  /* v1.3.0: 主题色 link hover — 跟随 --primary-accent */
+  color: var(--primary-accent);
+  background: rgba(255, 255, 255, 0.06);
 }
 .settings-link:focus-visible {
   outline: 2px solid rgba(180, 200, 255, 0.7);
@@ -1576,7 +1591,8 @@ html, body {
   font-weight: 400;
 }
 .update-toast-action {
-  background: linear-gradient(135deg, rgba(120, 180, 255, 0.85), rgba(160, 130, 240, 0.85));
+  /* v1.3.0 bug 修 B5: 主题色按钮 — 跟随 --primary-accent */
+  background: var(--primary-accent);
   border: none;
   color: #fff;
   font-size: 12px;
@@ -1590,7 +1606,7 @@ html, body {
 }
 .update-toast-action:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(160, 130, 240, 0.4);
+  box-shadow: 0 4px 12px var(--hover-glow);
 }
 .update-toast-close {
   background: transparent;
@@ -1628,7 +1644,8 @@ html, body {
 
 /* 设置面板内 "检查" 按钮 */
 .settings-action-btn {
-  background: linear-gradient(135deg, rgba(120, 180, 255, 0.7), rgba(160, 130, 240, 0.7));
+  /* v1.3.0 bug 修 B5: 主题色按钮 — 跟随 --primary-accent */
+  background: var(--primary-accent);
   border: none;
   color: #fff;
   font-size: 12px;
@@ -1686,7 +1703,8 @@ html, body {
   height: 24px;
   border-radius: 50%;
   border: 2.5px solid rgba(255, 255, 255, 0.18);
-  border-top-color: rgba(160, 130, 240, 0.85);
+  /* v1.3.0 bug 修 B5: 主题色 spinner — 跟随 --primary-accent */
+  border-top-color: var(--primary-accent);
   animation: settingsApplySpin 0.8s linear infinite;
 }
 @keyframes settingsApplySpin {

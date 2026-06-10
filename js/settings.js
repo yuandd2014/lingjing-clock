@@ -17,6 +17,8 @@
     live2d:    { visible: true, opacity: 1.00, model: 'Hiyori' },
     particles: { visible: true, count: 10 },
     clock:     { size: 140, opacity: 1.00, align: 'left' },
+    // v1.3.0: 主题色 — 8 个灵境品牌色, 用户可在设置面板切换
+    theme:     { accent: 'aurora-purple' },
     // v1.2.1: 自动更新 — 默认开启, 用户可关; 后台扫描间隔 (ms)
     // 1.2.0 默认 6s 启动一次 + 用户手动点"立即检查" — 加 1h 周期扫描, 平衡"不打扰"和"不错过"
     autoUpdateEnabled: true,
@@ -134,6 +136,12 @@
     // 布局: 根据可见面板数切 grid 模板
     if (window.Layout && typeof window.Layout.apply === 'function') {
       window.Layout.apply(current);
+    }
+
+    // v1.3.0 bug 修 B2: 任何设置变更后应用主题色 + 字体缩放
+    // applyTheme 已存在, 但 apply() 没调, 改设置后主题色不更新
+    if (window.Theme) {
+      window.Theme.applyTheme(current.theme);
     }
   }
 

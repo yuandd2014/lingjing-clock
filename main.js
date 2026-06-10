@@ -91,8 +91,10 @@ function createSplashWindow() {
   });
 
   // 装包模式用 ?install=1 强制走装包分支; 启动模式不带参数走启动分支
+  // v=vX.Y.Z 让 splash 显示真实版本号 (跟 package.json 同步, 不会过期)
+  // 注意: loadFile 用 query option 传 query string, 不能直接拼字符串到 path
   if (isSplashMode) {
-    splashWin.loadFile('splash.html?install=1');
+    splashWin.loadFile('splash.html', { query: { install: '1', v: app.getVersion() } });
     // 装包模式: 4.5s + 350ms 退场 + 200ms 缓冲 = 5.1s 自动退
     splashAutoTimer = setTimeout(() => {
       if (splashWin && !splashWin.isDestroyed()) splashWin.close();
@@ -100,7 +102,7 @@ function createSplashWindow() {
     }, 5100);
   } else {
     // 启动模式: 等 LingJingLoader 4 组件 ready 才 dismiss
-    splashWin.loadFile('splash.html');
+    splashWin.loadFile('splash.html', { query: { v: app.getVersion() } });
   }
 
   // IPC: splash 主动请求退出 (装包/启动模式分流)

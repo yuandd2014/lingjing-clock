@@ -4,7 +4,7 @@
 
 让 Windows 桌面, 拥有一面映照时间的镜子。
 
-[![下载 v1.2.1](https://img.shields.io/badge/下载-v1.2.1-0071e3?style=for-the-badge)](https://github.com/yuandd2014/lingjing-clock/releases/latest)
+[![下载 v1.3.0](https://img.shields.io/badge/下载-v1.3.0-0071e3?style=for-the-badge)](https://github.com/yuandd2014/lingjing-clock/releases/latest)
 [![平台](https://img.shields.io/badge/平台-Windows%2010%2F11-0071e3?style=flat-square)](#)
 [![架构](https://img.shields.io/badge/架构-x64-34c759?style=flat-square)](#)
 [![Electron](https://img.shields.io/badge/Electron-31.7.7-47848F?style=flat-square)](#)
@@ -22,7 +22,7 @@
 
 ---
 
-## 🎁 这次更新 · v1.2.1
+## 🎁 这次更新 · v1.3.0
 
 **灵境 安装仪式 + 自动更新 — 让升级也变得轻巧。**
 
@@ -82,7 +82,7 @@
 
 | 文件 | 大小 | 说明 |
 |---|---|---|
-| **`LingJing.Clock.Setup.1.2.1.exe`** | **95 MB** | NSIS 安装版 (推荐) |
+| **`LingJing.Clock.Setup.1.3.0.exe`** | **95 MB** | NSIS 安装版 (推荐) |
 | **`LingJingClock-Portable.exe`** | **93 MB** | 便携版, 解压即用 |
 | `LingJing.Clock.Setup.1.2.0.exe.blockmap` | 96 KB | 增量更新用 |
 
@@ -177,7 +177,7 @@ key = atob(_k1 + _k2).split('').reverse().join('')
 
 ---
 
-## 🔄 自动更新 — 隐私说明 (v1.2.1+)
+## 🔄 自动更新 — 隐私说明 (v1.3.0+)
 
 灵境时钟内置了"自动检查更新"功能 (默认开启), 让您不必手动下载新版本。
 

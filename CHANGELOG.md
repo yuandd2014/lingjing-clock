@@ -7,6 +7,27 @@
 
 ---
 
+## v1.3.2 (2026-06-11)
+
+**🔧 UI 显示精度升级 — 天气组件紧凑度优化, 信息全显示。**
+
+### 修复
+
+- **天气组件底部时段信息被裁切 (urgent)** — 部分用户的天气组件最下方 (`forecast` 区域) 内容因空间不足, `forecast-desc` 文字被 ellipsis 截断, 时段 6 的描述显示不全
+  - **根因**: `.area-weather` (`.glass-card`) 容器有 `overflow: hidden` + grid row 1 (50% 高度) 受限. 内部 `forecast-item` padding 8px / gap 5px / icon 24px / `forecast-desc` `white-space: nowrap` 强制单行, 当 6 条 forecast 等分容器宽度时, desc 文字被 ellipsis 截断. `.weather-daily` min-height 56px 也吃掉了部分垂直空间
+  - **修复** (5 处微调, `css/style.css`):
+    1. `.area-weather` gap 20→14px + min-height 0 (允许 flex 子项压缩)
+    2. `.weather-forecast` gap 12→8px + padding-top 16→12px
+    3. `.forecast-item` padding 8px 4px → 4px 2px + gap 5→4px
+    4. `.forecast-icon` font-size 24→20px
+    5. `.forecast-desc` `white-space: nowrap` → `word-break: break-all` + min-height 1.2em (防 ellipsis 截断, 允许中文换行)
+    6. `.weather-daily` min-height 56px → 0 (自适应)
+  - **节省**: weather 组件整体 ~80-100px, 6 条 forecast 信息全显示, 紧凑度符合 Apple 风 11/13/15/18/22/28 排版节奏
+
+### 不变
+
+- 主题色 / Live2D / 农历 / 节气 / Splash / 自动更新 等全部功能不动
+
 ## v1.3.1 (2026-06-11)
 
 **🎨 Apple 风 UI 大幅升级 + 🌧️ 天气数据健壮性 — 让桌面安静一点。**

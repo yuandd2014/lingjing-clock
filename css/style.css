@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700;900&family=Orbitron:wght@400;700;900&display=swap');
+@import url('./fonts.css');
 
 /* v1.3.0: 主题色变量 — 6 个核心颜色, 切换主题时只改这里 */
 :root {

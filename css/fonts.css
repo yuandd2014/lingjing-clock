@@ -1,0 +1,54 @@
+/**
+ * 灵境 UI 字体方案 (v1.3.1 简化版 — 系统字体优先)
+ * 完整本地 woff2 版本见 css/fonts.css.v1.3.2.bak, 随 v1.3.2 一起上
+ *
+ * 设计原则 (Apple 风):
+ * 1. 西文用系统 Inter / SF Pro Display / Helvetica Neue
+ * 2. 中文用系统 PingFang SC / Microsoft YaHei / Hiragino Sans GB
+ * 3. 5 阶字重 + OpenType features (kern/liga/calt/tnum/lnum/pnum)
+ * 4. 标题层级 h1-h6 + 字重 utility
+ *
+ * Windows 上 fallback 链: Segoe UI → Microsoft YaHei UI
+ * macOS 上 fallback 链: SF Pro Display → PingFang SC
+ */
+:root {
+  --font-cjk: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Microsoft YaHei UI', 'Source Han Sans CN', system-ui, sans-serif;
+  --font-latin: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Consolas', 'Menlo', monospace;
+  --font-brand: var(--font-cjk);
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-family-system: var(--font-latin), var(--font-cjk);
+  --font-family-noto:   var(--font-cjk);
+  --font-family-hyqi:   'HYQiHei', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-family-inter:  var(--font-latin);
+  --font-family:        var(--font-family-system);
+}
+html, body, button, input, select, textarea {
+  font-family: var(--font-family);
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+.num, .time, .digits, [data-num] {
+  font-family: var(--font-latin);
+  font-feature-settings: 'tnum' 1, 'lnum' 1, 'kern' 1;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+/* 标题层级 — Apple 风 27/22/17/15/13/11 比例 */
+h1, .h1 { font-size: 28px; font-weight: var(--font-weight-bold);    letter-spacing: -0.022em; line-height: 1.18; }
+h2, .h2 { font-size: 22px; font-weight: var(--font-weight-semibold); letter-spacing: -0.018em; line-height: 1.22; }
+h3, .h3 { font-size: 18px; font-weight: var(--font-weight-semibold); letter-spacing: -0.014em; line-height: 1.30; }
+h4, .h4 { font-size: 15px; font-weight: var(--font-weight-medium);   letter-spacing: -0.008em; line-height: 1.35; }
+h5, .h5 { font-size: 13px; font-weight: var(--font-weight-medium);   letter-spacing: -0.004em; line-height: 1.40; }
+h6, .h6 { font-size: 11px; font-weight: var(--font-weight-semibold); letter-spacing: 0.020em; line-height: 1.45; text-transform: uppercase; }
+/* 字重 utility */
+.fw-light     { font-weight: var(--font-weight-light)     !important; }
+.fw-regular   { font-weight: var(--font-weight-regular)   !important; }
+.fw-medium    { font-weight: var(--font-weight-medium)    !important; }
+.fw-semibold  { font-weight: var(--font-weight-semibold)  !important; }
+.fw-bold      { font-weight: var(--font-weight-bold)      !important; }

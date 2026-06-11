@@ -218,8 +218,64 @@ const OPENMETEO_ICONS = {
 };
 
 // ============================================================
-// AQI 颜色映射 (中国国标)
+// 文字 → emoji 反查 (T0 bug 修复: API icon 码 300+ 段经常错位,
+//   比如 6 月重庆 22°C 实际中雨, API 返回 icon=306(text=中雨) 这种
+//   icon/text 不一致数据. 旧代码 L86 把 306 映射成"小雪"导致 user 看到
+//   "重庆在下雪". 修复: 以 API 的 text 字段为权威, 用关键词反推 emoji,
+//   icon 码只作为 text 为空时的 fallback)
 // ============================================================
+function textToIcon(text) {
+  if (!text) return '⛅';
+  // 雪系 (含雨夹雪/阵雪/雷阵雪/小雪/中雪/大雪/暴雪) - 优先匹配
+  if (/雪/.test(text)) return /雷/.test(text) ? '⛈️' : /雨夹/.test(text) ? '🌨️' : '❄️';
+  // 雹 / 冰粒
+  if (/雹|冰粒/.test(text)) return '⛈️';
+  // 雷 (无雪)
+  if (/雷/.test(text)) return '⛈️';
+  // 雨 (含阵雨/小雨/中雨/大雨/暴雨 等)
+  if (/雨/.test(text)) return /转/.test(text) ? '🌦️' : '🌧️';
+  // 雾 / 霾
+  if (/雾|霾/.test(text)) return '🌫️';
+  // 沙 / 尘 / 扬
+  if (/沙|尘|扬/.test(text)) return '🌬️';
+  // 风 / 飓 / 台
+  if (/风|飓|台/.test(text)) return '🌪️';
+  // 阴
+  if (/阴/.test(text)) return '☁️';
+  // 多云
+  if (/多云/.test(text)) return '🌤️';
+  // 晴
+  if (/晴/.test(text)) return '☀️';
+  return '⛅';
+}
+
+// 温度合理性校验: 温度 > 5°C 但 desc 含"雪" → 降级为对应强度的"雨"
+// 已知问题: 和风天气 v7 API 在某些条件下会返回 desc="小雪" + temp=22°C 这种
+//   异常数据 (实测重庆 6 月 22°C 实际是"中雨"但偶发 desc 错位). 深度防御
+//   层, 防 API 数据异常时 UI 显示"22°C 下雪"这种诡异组合.
+const SNOW_TO_RAIN = {
+  '小雪': '小雨', '中雪': '中雨', '大雪': '大雨', '暴雪': '暴雨',
+  '阵雪': '阵雨', '强阵雪': '强阵雨', '雷阵雪': '雷阵雨',
+  '雨夹雪': '阵雨',
+};
+function sanitizeWeatherText(text, temp) {
+  if (!text) return text;
+  const t = parseFloat(temp);
+  if (!isNaN(t) && t > 5 && /雪|❄️|☃️|⛄/.test(text)) {
+    console.warn('[Weather] 数据异常: temp=' + t + '°C 但 desc="' + text + '", 降级为"雨"');
+    let result = text;
+    // 按雪强度顺序替换, 保留原文结构 (小雪→小雨, 中雪→中雨 等)
+    for (const [snow, rain] of Object.entries(SNOW_TO_RAIN)) {
+      if (result.includes(snow)) result = result.split(snow).join(rain);
+    }
+    // 兜底: 残余的"雪"字 (如纯"雪") 替换为"雨"
+    result = result.replace(/雪/g, '雨');
+    return result;
+  }
+  return text;
+}
+
+// AQI 颜色映射 (中国国标)
 function getAqiColor(aqi) {
   if (aqi <= 50)  return '#00e400';
   if (aqi <= 100) return '#ffff00';
@@ -359,7 +415,12 @@ async function fetchFromHeFeng(lat, lon) {
 
   const nowData = nowRes.value;
   const n = nowData.now;
-  const icon = HEFENG_ICONS[parseInt(n.icon)] || { icon: '⛅', text: n.text };
+  // T0 bug 修复: 以 API text 字段为权威, emoji 从 text 反推
+  // 旧代码依赖 HEFENG_ICONS[icon], 但 API 偶发 icon=306(text=中雨) 这种错位数据
+  // 旧 L86 把 306 映射成"小雪"导致 6 月重庆 22°C 显示"下雪" ❄️
+  const apiText = n.text || '多云';
+  const safeText = sanitizeWeatherText(apiText, n.temp);
+  const icon = { icon: textToIcon(safeText), text: safeText };
 
   // ---- hourly ----
   const nowHour = new Date().getHours();
@@ -377,12 +438,13 @@ async function fetchFromHeFeng(lat, lon) {
       // 明天只保留关键时段
       if (!isToday && ![6, 9, 12, 15, 18, 21].includes(hour)) return;
 
-      const hIcon = HEFENG_ICONS[parseInt(h.icon)] || { icon: '⛅', text: h.text };
+      const hApiText = h.text || '多云';
+      const hSafeText = sanitizeWeatherText(hApiText, h.temp);
       hourly.push({
         time: isToday ? `${hour}:00` : `明天${hour}:00`,
         temp: parseInt(h.temp),
-        icon: hIcon.icon,
-        desc: h.text,
+        icon: textToIcon(hSafeText),
+        desc: hSafeText,
         tomorrow: !isToday,
       });
     });
@@ -392,11 +454,14 @@ async function fetchFromHeFeng(lat, lon) {
   const daily = [];
   if (dailyRes.status === 'fulfilled' && dailyRes.value.code === '200') {
     (dailyRes.value.daily || []).forEach(d => {
+      // daily 用 textDay 文字 + tempMax(白天最热) 做合理性校验
+      const dApiText = d.textDay || '多云';
+      const dSafeText = sanitizeWeatherText(dApiText, d.tempMax);
       daily.push({
         date: d.fxDate.substring(5),
         max: parseInt(d.tempMax),
         min: parseInt(d.tempMin),
-        icon: (HEFENG_ICONS[parseInt(d.iconDay)] || { icon: '⛅' }).icon,
+        icon: textToIcon(dSafeText),
         sunrise: d.sunrise,
         sunset: d.sunset,
       });
@@ -475,15 +540,16 @@ async function fetchFromWttr(lat, lon) {
   const areaLon = parseFloat(area.longitude) || lon || WEATHER_CONFIG.defaultLon;
 
   const cur = raw.current_condition[0];
-  const wcode = parseInt(cur.weatherCode) || 113;
-  const wmo = WWO_CODES[wcode] || { icon: '⛅', text: cur.weatherDesc?.[0]?.value || '多云' };
-
+  // T0 bug 修复: text 字段优先, icon 码只作 fallback
+  const wtext = cur.weatherDesc?.[0]?.value || '多云';
+  const wtemp = parseInt(cur.temp_C);
+  const wsafeText = sanitizeWeatherText(wtext, wtemp);
   const current = {
-    temp: parseInt(cur.temp_C),
-    feelsLike: parseInt(cur.FeelsLikeC) || parseInt(cur.temp_C),
+    temp: wtemp,
+    feelsLike: parseInt(cur.FeelsLikeC) || wtemp,
     humidity: parseInt(cur.humidity),
-    desc: wmo.text,
-    icon: wmo.icon,
+    desc: wsafeText,
+    icon: textToIcon(wsafeText),
     windDir: cur.winddir16Point || '',
     windScale: parseInt(cur.windSpeed) || 0,
     vis: cur.visibility || '',
@@ -501,25 +567,32 @@ async function fetchFromWttr(lat, lon) {
       const hTime = parseInt(h.time) / 100;
       if (isToday && hTime <= nowHour) continue;
       if (!isToday && ![6, 9, 12, 15, 18, 21].includes(hTime)) continue;
-      const hcode = parseInt(h.weatherCode) || 113;
-      const hwmo = WWO_CODES[hcode] || { icon: '⛅', text: '' };
+      // T0 bug 修复: text 优先 (虽然 wttr.in text 是英文, 但跟 HEFENG_ICONS 互补防错)
+      const hTemp = parseInt(h.tempC);
+      const hWeatherDesc = WWO_CODES[parseInt(h.weatherCode) || 113]?.text || '';
+      const hSafeText = sanitizeWeatherText(hWeatherDesc, hTemp);
       hourly.push({
         time: isToday ? `${hTime}:00` : `明天${hTime}:00`,
-        temp: parseInt(h.tempC),
-        icon: hwmo.icon,
-        desc: hwmo.text,
+        temp: hTemp,
+        icon: textToIcon(hSafeText),
+        desc: hSafeText,
         tomorrow: !isToday,
       });
     }
   }
 
   // ---- daily ----
-  const daily = (raw.weather || []).slice(0, 7).map(day => ({
-    date: day.date.substring(5),
-    max: parseInt(day.maxtempC),
-    min: parseInt(day.mintempC),
-    icon: (WWO_CODES[parseInt(day.hourly?.[4]?.weatherCode) || 113] || { icon: '⛅' }).icon,
-  }));
+  const daily = (raw.weather || []).slice(0, 7).map(day => {
+    // T0 bug 修复: 用 max temp 校验, text 优先
+    const dDesc = WWO_CODES[parseInt(day.hourly?.[4]?.weatherCode) || 113]?.text || '多云';
+    const dSafeText = sanitizeWeatherText(dDesc, day.maxtempC);
+    return {
+      date: day.date.substring(5),
+      max: parseInt(day.maxtempC),
+      min: parseInt(day.mintempC),
+      icon: textToIcon(dSafeText),
+    };
+  });
 
   return {
     location: { city: cityName, lat: areaLat, lon: areaLon },
@@ -544,8 +617,11 @@ async function fetchFromOpenMeteo(lat, lon) {
   const data = await fetchWithTimeout(url, 10000);
   if (!data || !data.current) throw new Error('open-meteo 数据异常');
 
+  // T0 bug 修复: text 优先, text 已经通过 OPENMETEO_ICONS 翻译过, 直接用
   const wc = data.current.weather_code;
-  const wmo = OPENMETEO_ICONS[wc] || { icon: '⛅', text: '多云' };
+  const wmoText = (OPENMETEO_ICONS[wc] || { text: '多云' }).text;
+  const wmoTemp = Math.round(data.current.temperature_2m);
+  const wmoSafeText = sanitizeWeatherText(wmoText, wmoTemp);
 
   // ---- hourly ----
   const nowHour = new Date().getHours();
@@ -556,12 +632,14 @@ async function fetchFromOpenMeteo(lat, lon) {
     for (let i = nowHour + 1; i < 24; i++) {
       const idx = i - nowHour - 1;
       if (idx < data.hourly.time.length) {
-        const hw = OPENMETEO_ICONS[data.hourly.weather_code[idx]] || { icon: '⛅' };
+        const hTemp = Math.round(data.hourly.temperature_2m[idx]);
+        const hText = (OPENMETEO_ICONS[data.hourly.weather_code[idx]] || { text: '多云' }).text;
+        const hSafeText = sanitizeWeatherText(hText, hTemp);
         hourly.push({
           time: `${i}:00`,
-          temp: Math.round(data.hourly.temperature_2m[idx]),
-          icon: hw.icon,
-          desc: hw.text || '',
+          temp: hTemp,
+          icon: textToIcon(hSafeText),
+          desc: hSafeText,
           tomorrow: false,
         });
       }
@@ -570,12 +648,14 @@ async function fetchFromOpenMeteo(lat, lon) {
     [6, 9, 12, 15, 18, 21].forEach(h => {
       const idx = 24 - nowHour - 1 + h;
       if (idx >= 0 && idx < data.hourly.time.length) {
-        const hw = OPENMETEO_ICONS[data.hourly.weather_code[idx]] || { icon: '⛅' };
+        const hTemp = Math.round(data.hourly.temperature_2m[idx]);
+        const hText = (OPENMETEO_ICONS[data.hourly.weather_code[idx]] || { text: '多云' }).text;
+        const hSafeText = sanitizeWeatherText(hText, hTemp);
         hourly.push({
           time: `明天${h}:00`,
-          temp: Math.round(data.hourly.temperature_2m[idx]),
-          icon: hw.icon,
-          desc: hw.text || '',
+          temp: hTemp,
+          icon: textToIcon(hSafeText),
+          desc: hSafeText,
           tomorrow: true,
         });
       }
@@ -586,11 +666,14 @@ async function fetchFromOpenMeteo(lat, lon) {
   const daily = [];
   if (data.daily) {
     for (let i = 0; i < data.daily.time.length; i++) {
+      const dMax = Math.round(data.daily.temperature_2m_max[i]);
+      const dText = (OPENMETEO_ICONS[data.daily.weather_code[i]] || { text: '多云' }).text;
+      const dSafeText = sanitizeWeatherText(dText, dMax);
       daily.push({
         date: data.daily.time[i].substring(5),
-        max: Math.round(data.daily.temperature_2m_max[i]),
+        max: dMax,
         min: Math.round(data.daily.temperature_2m_min[i]),
-        icon: (OPENMETEO_ICONS[data.daily.weather_code[i]] || { icon: '⛅' }).icon,
+        icon: textToIcon(dSafeText),
         sunrise: data.daily.sunrise ? data.daily.sunrise[i] : undefined,
         sunset: data.daily.sunset ? data.daily.sunset[i] : undefined,
       });
@@ -600,11 +683,11 @@ async function fetchFromOpenMeteo(lat, lon) {
   return {
     location: { city: WEATHER_CONFIG.defaultCity, lat, lon },
     current: {
-      temp: Math.round(data.current.temperature_2m),
+      temp: wmoTemp,
       feelsLike: Math.round(data.current.apparent_temperature || data.current.temperature_2m),
       humidity: data.current.relative_humidity_2m,
-      desc: wmo.text,
-      icon: wmo.icon,
+      desc: wmoSafeText,
+      icon: textToIcon(wmoSafeText),
       windDir: '',
       windScale: Math.round(data.current.wind_speed_10m || 0),
       vis: '',

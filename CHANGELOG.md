@@ -7,6 +7,34 @@
 
 ---
 
+## v1.3.1 (2026-06-11)
+
+**🎨 Apple 风 UI 大幅升级 — 让桌面安静一点。**
+
+### 新增
+
+- **官网 5 页重构** — 新增 `design.html` 灵境UI 设计逻辑页 (8 主题色 + 4 视觉 token + 4 设计原则 + CSS 代码块)
+- **官网 hero 改色块** — 删 demo-placeholder AI 味占位, 改 4 token 色块 (毛玻璃/粒子/发光/暗角) 2×2 网格
+- **官网特性卡加底部色块** — 6 张卡各配主应用对应主题色色块
+- **安装包 brand assets 重烧** — `installerHeader.bmp` / `installerSidebar.bmp` / `installerIcon.ico` / `installerHeaderIcon.ico` 全部走 Apple 风灵境色, 替换 v1.2.0 复用至今的旧图
+
+### 改
+
+- **官网 `changelog.html` 改体验风** — 6 段砍到 4 段, 删所有 `<code>` 技术名词, 删 emoji 前缀, 砍 "已砍功能/品牌资产复用" 内务信息
+- **官网 `about.html` 删 timeline 段** — 跟 changelog 重复, 砍; 灵境UI 段加 token 描述 + "看完整设计语言" 链接
+- **主仓 `firstrun.js` 引导卡 4→3** — 砍 "自动检查更新" 重复卡, 改 Apple 风 SVG 风格字符 (▣/◐/⌘)
+- **主仓 `settings-ui.js` 字段 14→11** — 砍 `clock.size` / `clock.align` / `live2d.model` / `solar.opacity` 4 项
+- **主仓 README 砍 8 段** — 删"这次更新" / "v1.x 历程" / "灵境UI 四象归一" / "主视觉" / "技术栈" / "目录结构" / "隐私说明" / "灵镜光感小论文"
+- **主仓 README 修 5 处** — `v1.2.0` 链 → `releases/latest` / 95 MB → 89 MB / 93 MB → 89 MB / `dist_v10/` → `dist_v{N}/` / `wttr.in` → 和风
+- **统一规则** — 通用内容不绑死版本号, 顶部下载 badge 链 `/releases/latest`
+
+### 不变
+
+- 主题色 8 色 + 字体 4 套延续 v1.3.0
+- Splash / 自动更新 / Live2D 加载 / 天气 / 农历 等核心功能不动
+
+---
+
 ## v1.3.0 (2026-06-10)
 
 **🎨 主题色 — 让灵境也跟你的眼睛。**

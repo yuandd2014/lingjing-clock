@@ -24,6 +24,23 @@
     return p ? p.hex : THEME_PRESETS[0].hex;
   }
 
+  // 4 套字体映射: 切到对应 :root --font-family-* 变量
+  const FONT_VAR_MAP = {
+    'system': '--font-family-system',
+    'noto':   '--font-family-noto',
+    'hyqi':   '--font-family-hyqi',
+    'inter':  '--font-family-inter',
+  };
+
+  // 切字体 — 读 :root 上预定义好的 --font-family-* 变量, 然后覆盖 --font-family
+  function applyFont(name) {
+    const cssVarName = FONT_VAR_MAP[name] || FONT_VAR_MAP['system'];
+    const value = getComputedStyle(document.documentElement).getPropertyValue(cssVarName).trim();
+    if (value) {
+      document.documentElement.style.setProperty('--font-family', value);
+    }
+  }
+
   // 把主题写到 :root CSS 变量 — atomic 切换, 屏幕不闪
   function applyTheme(theme) {
     if (!theme) return;
@@ -31,7 +48,10 @@
     if (theme.accent) {
       root.style.setProperty('--primary-accent', hexOf(theme.accent));
     }
+    if (theme.font) {
+      applyFont(theme.font);
+    }
   }
 
-  window.Theme = { THEME_PRESETS, applyTheme, hexOf };
+  window.Theme = { THEME_PRESETS, applyTheme, applyFont, hexOf, FONT_VAR_MAP };
 })();

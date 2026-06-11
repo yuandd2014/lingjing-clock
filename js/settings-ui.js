@@ -22,22 +22,16 @@
       ],
     },
     {
-      key: 'solar', title: '节气面板', icon: '🌾',
+      key: 'solar', title: '节气面板', icon: '◑',
       items: [
         { type: 'switch', key: 'visible', label: '显示' },
-        { type: 'range',  key: 'opacity', label: '透明度', min: 0.3, max: 1, step: 0.05 },
       ],
     },
     {
-      key: 'live2d', title: 'Live2D 角色', icon: '🌸',
+      key: 'live2d', title: 'Live2D 角色', icon: '✦',
       items: [
         { type: 'switch', key: 'visible', label: '显示' },
         { type: 'range',  key: 'opacity', label: '透明度', min: 0.3, max: 1, step: 0.05 },
-        { type: 'select', key: 'model',   label: '模型',
-          options: [
-            { v: 'Hiyori', t: 'Hiyori' },
-            { v: 'shizuku', t: '志贵 (v1 暂未开放)' },
-          ] },
       ],
     },
     {
@@ -67,7 +61,8 @@
         { type: 'action', key: 'checkNow', label: '立即检查更新' },
       ],
     },
-    // v1.3.0: 主题色/排版 — 8 个灵境品牌色 + 字体大小 0.8x-1.4x
+    // v1.3.0: 主题色/排版 — 8 个灵境品牌色
+    // v1.3.1: 字体 — 4 套 (system / noto 思源黑体 / hyqi 苹方替代 / inter 英文优化)
     {
       key: 'theme', title: '主题', icon: '🎨',
       items: [
@@ -81,6 +76,13 @@
             { v: 'peach-pink',    t: '蜜桃粉' },
             { v: 'wave-cyan',     t: '电波青' },
             { v: 'sweet-orange',  t: '甜橙' },
+          ] },
+        { type: 'select', key: 'font', label: '字体',
+          options: [
+            { v: 'system', t: '系统默认' },
+            { v: 'noto',   t: '思源黑体 (中文优化)' },
+            { v: 'hyqi',   t: '苹方替代 HYQiHei (Apple 风)' },
+            { v: 'inter',  t: 'Inter (英文/数字优化)' },
           ] },
       ],
     },

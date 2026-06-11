@@ -18,7 +18,8 @@
     particles: { visible: true, count: 10 },
     clock:     { size: 140, opacity: 1.00, align: 'left' },
     // v1.3.0: 主题色 — 8 个灵境品牌色, 用户可在设置面板切换
-    theme:     { accent: 'aurora-purple' },
+    // v1.3.1: 字体 — 4 套 (system / noto / hyqi / inter)
+    theme:     { accent: 'aurora-purple', font: 'system' },
     // v1.2.1: 自动更新 — 默认开启, 用户可关; 后台扫描间隔 (ms)
     // 1.2.0 默认 6s 启动一次 + 用户手动点"立即检查" — 加 1h 周期扫描, 平衡"不打扰"和"不错过"
     autoUpdateEnabled: true,

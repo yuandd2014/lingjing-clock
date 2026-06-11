@@ -57,24 +57,19 @@
 
         <div class="firstrun-cards">
           <article class="firstrun-card" style="--card-delay: 700ms">
-            <div class="firstrun-card-icon" aria-hidden="true">🖱</div>
+            <div class="firstrun-card-icon" aria-hidden="true">▣</div>
             <h3 class="firstrun-card-title">右下角热区</h3>
-            <p class="firstrun-card-desc">鼠标移到屏幕右下角, 唤出控制条 (刷新 + 设置), 平时干净</p>
+            <p class="firstrun-card-desc">鼠标移到屏幕右下角, 唤出控制条 — 平时桌面干净, 需要时一点就出</p>
           </article>
-          <article class="firstrun-card" style="--card-delay: 780ms">
-            <div class="firstrun-card-icon" aria-hidden="true">⚙</div>
+          <article class="firstrun-card" style="--card-delay: 800ms">
+            <div class="firstrun-card-icon" aria-hidden="true">◐</div>
             <h3 class="firstrun-card-title">设置面板</h3>
-            <p class="firstrun-card-desc">6 大类 14 项: 隐藏不需要的面板, 调透明度, 换 Live2D 角色, 全是你的</p>
+            <p class="firstrun-card-desc">8 大类 11 项配置, 改完即生效, 不用重启</p>
           </article>
-          <article class="firstrun-card" style="--card-delay: 860ms">
-            <div class="firstrun-card-icon" aria-hidden="true">⌨</div>
+          <article class="firstrun-card" style="--card-delay: 900ms">
+            <div class="firstrun-card-icon" aria-hidden="true">⌘</div>
             <h3 class="firstrun-card-title">快捷键</h3>
-            <p class="firstrun-card-desc"><kbd>Esc</kbd> 退出 · <kbd>Ctrl</kbd>+<kbd>R</kbd> 刷新 · 右下 ⚙ 唤出设置</p>
-          </article>
-          <article class="firstrun-card firstrun-card-wide" style="--card-delay: 940ms">
-            <div class="firstrun-card-icon" aria-hidden="true">🔄</div>
-            <h3 class="firstrun-card-title">自动检查更新 (已开启)</h3>
-            <p class="firstrun-card-desc">启动时 + 每 1 小时, 匿名问 GitHub "有新版本吗?". <strong>不</strong>上传任何使用数据, <strong>不</strong>记录您的 IP. 设置 → 系统更新 可一键关掉.</p>
+            <p class="firstrun-card-desc"><kbd>Esc</kbd> 退出全屏 · <kbd>Ctrl</kbd>+<kbd>R</kbd> 刷新 · 右下角 ⚙ 唤出设置</p>
           </article>
         </div>
 

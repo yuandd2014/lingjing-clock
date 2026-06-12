@@ -31,14 +31,8 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: 安装系统依赖 (libgtk/libnss3/libappindicator 等 Electron 运行时)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libgtk-3-0 libnotify4 libnss3 libxss1 libxtst6 xauth \
-            libxrandr2 libasound2 libgbm1 libxshmfence1 \
-            libappindicator3-1 libsecret-1-0 \
-            fakeroot dpkg rpm
+      - name: 安装系统依赖 (Electron 运行时 + libappindicator)
+        run: bash .github/workflows/install-deps.sh
 
       - name: 安装 npm 依赖
         run: npm ci

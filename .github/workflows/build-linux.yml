@@ -1,0 +1,80 @@
+name: build-linux
+
+# v1.4.0 Linux 桌面构建流水线
+# 触发: push tag v*.*.* 或手动 workflow_dispatch
+# 输出: .deb (Ubuntu/Debian) + AppImage (通用) → 上传为 artifacts
+# 目标: Kubuntu (KDE Plasma + Wayland) 优先适配, 同时覆盖 Ubuntu 22.04+ / Debian 12+ / Linux Mint 21+
+# CI 环境: ubuntu-latest (Ubuntu 22.04) 无头构建, 验证打包链路
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Git tag (e.g. v1.4.0), 默认用当前触发 tag'
+        required: false
+
+jobs:
+  build-linux:
+    name: 构建 Linux 包 (.deb + AppImage)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Node.js 20 + npm 缓存
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 安装系统依赖 (libgtk/libnss3/libappindicator 等 Electron 运行时)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-0 libnotify4 libnss3 libxss1 libxtst6 xauth \
+            libxrandr2 libasound2 libgbm1 libxshmfence1 \
+            libappindicator3-1 libsecret-1-0 \
+            fakeroot dpkg rpm
+
+      - name: 安装 npm 依赖
+        run: npm ci
+
+      - name: 跑 electron-builder 出 .deb + AppImage
+        env:
+          # electron-builder 自动读取 GH_TOKEN 推 GitHub release, 我们用 workflow 自身的 GITHUB_TOKEN
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run dist:linux
+
+      - name: 列出 dist 输出
+        run: |
+          echo "=== dist 目录内容 ==="
+          ls -lh dist_v18/ 2>/dev/null || ls -lh dist_*/ 2>/dev/null
+          echo "=== 包类型确认 ==="
+          find dist_*/ -maxdepth 2 \( -name "*.deb" -o -name "*.AppImage" \) -exec ls -lh {} \;
+
+      - name: 上传 .deb + AppImage 为 artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages
+          path: |
+            dist_*/lingjing-clock_*_amd64.deb
+            dist_*/LingJing.Clock.*.AppImage
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: 解析包信息 (验证元数据正确)
+        if: success()
+        run: |
+          DEB=$(find dist_*/ -name "*.deb" | head -1)
+          if [ -n "$DEB" ]; then
+            echo "=== .deb 元数据 ==="
+            dpkg-deb -I "$DEB" | head -20
+            echo "=== .deb 依赖 ==="
+            dpkg-deb -f "$DEB" Depends
+            echo "=== .deb 文件结构 (前 30 行) ==="
+            dpkg-deb -c "$DEB" | head -30
+          fi

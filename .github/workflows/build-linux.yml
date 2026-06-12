@@ -37,11 +37,23 @@ jobs:
       - name: 安装 npm 依赖 (项目无 package-lock.json, 用 install 而非 ci)
         run: npm install --no-audit --no-fund --prefer-offline
 
-      - name: 跑 electron-builder 出 .deb + AppImage
+      - name: 跑 electron-builder 出 .deb + AppImage (输出到 build.log 便于失败排查)
         env:
           # electron-builder 自动读取 GH_TOKEN 推 GitHub release, 我们用 workflow 自身的 GITHUB_TOKEN
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run dist:linux
+        run: |
+          set -o pipefail
+          npm run dist:linux 2>&1 | tee build.log
+        continue-on-error: true
+
+      - name: 上传 build.log 为 artifacts (失败也上传, 便于本地排查)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: 列出 dist 输出
         run: |

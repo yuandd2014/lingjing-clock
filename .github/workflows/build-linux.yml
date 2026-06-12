@@ -34,8 +34,8 @@ jobs:
       - name: 安装系统依赖 (Electron 运行时 + libappindicator)
         run: bash .github/workflows/install-deps.sh
 
-      - name: 安装 npm 依赖
-        run: npm ci
+      - name: 安装 npm 依赖 (项目无 package-lock.json, 用 install 而非 ci)
+        run: npm install --no-audit --no-fund --prefer-offline
 
       - name: 跑 electron-builder 出 .deb + AppImage
         env:

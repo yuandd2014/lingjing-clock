@@ -8,7 +8,8 @@
     "build": "electron-builder --win",
     "dist": "electron-builder --win --x64 --publish never",
     "pack": "electron-builder --dir",
-    "dist:linux": "electron-builder --linux deb AppImage --x64 --publish never"
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
   },
   "build": {
     "appId": "com.lingjing.clock",
@@ -71,57 +72,12 @@
     },
     "portable": {
       "artifactName": "LingJingClock-Portable.exe"
-    },
-    "linux": {
-      "target": [
-        {
-          "target": "deb",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "AppImage",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "icon": "build/linux/icon-512.png",
-      "category": "Utility",
-      "desktop": {
-        "Name": "灵境时钟",
-        "Comment": "灵境时钟 — Linux 桌面毛玻璃时钟, 搭载 Live2D 角色 / 天气 / 农历",
-        "Categories": "Utility;Clock;",
-        "Keywords": "clock;weather;lunar;live2d;lingjing;",
-        "StartupNotify": "true",
-        "StartupWMClass": "lingjing-clock"
-      },
-      "artifactName": "LingJing.Clock.${version}.${ext}"
-    },
-    "deb": {
-      "priority": "optional",
-      "depends": [
-        "libgtk-3-0",
-        "libnotify4",
-        "libnss3",
-        "libxss1",
-        "libxtst6",
-        "xdg-utils",
-        "libatspi2.0-0",
-        "libappindicator3-1"
-      ],
-      "recommends": [
-        "libsecret-1-0"
-      ],
-      "fpm": [
-        "--deb-no-default-config-files"
-      ]
     }
   },
   "devDependencies": {
     "electron": "^31.7.7",
-    "electron-builder": "^24.13.0"
+    "electron-builder": "^24.13.0",
+    "wrangler": "^4.100.0"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
